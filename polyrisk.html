@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>if(!sessionStorage.getItem('polyrisk_auth'))window.location.replace('./index.html');</script>
+<title>PolyRisk — NHS Polypharmacy Risk Assessment</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --nhs-blue:#005EB8;--nhs-dark:#003D78;--nhs-light:#D5E8F5;
+  --nhs-green:#007F3B;--nhs-warm:#FFB81C;--nhs-red:#DA291C;--nhs-purple:#8C1A6A;
+  --bg:#F0F4F8;--card:#FFFFFF;--text:#212B36;--text-muted:#637381;--border:#DFE3E8;
+  --low:#007F3B;--moderate:#FF8C00;--high:#DA291C;--critical:#8C1A6A;
+  --radius:10px;--shadow:0 2px 12px rgba(0,0,0,.09);
+}
+html{font-size:15px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+
+/* ── Header ── */
+.header{background:linear-gradient(135deg,var(--nhs-dark),var(--nhs-blue));padding:18px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.header-badge{background:#fff;color:var(--nhs-blue);font-weight:900;font-size:1.25rem;padding:6px 18px;border-radius:8px;letter-spacing:.5px;white-space:nowrap}
+.header-text h1{color:#fff;font-size:1.25rem;font-weight:700;line-height:1.3}
+.header-text p{color:rgba(255,255,255,.82);font-size:.78rem;margin-top:2px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.header-user{color:rgba(255,255,255,.85);font-size:.8rem}
+.btn-logout{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);padding:6px 14px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .2s}
+.btn-logout:hover{background:rgba(255,255,255,.25)}
+
+/* ── Layout ── */
+.layout{display:grid;grid-template-columns:340px 1fr;gap:18px;padding:18px;max-width:1400px;margin:0 auto}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* ── Cards ── */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:16px;margin-bottom:0}
+.card-title{font-size:13px;text-transform:uppercase;font-weight:700;color:var(--nhs-blue);border-bottom:2px solid var(--nhs-light);padding-bottom:8px;margin-bottom:12px}
+
+/* ── Left Panel ── */
+.left-panel{display:flex;flex-direction:column;gap:18px}
+
+/* Search */
+.search-wrap{position:relative}
+#patient-search{width:100%;padding:10px 12px;border:2px solid var(--nhs-blue);border-radius:var(--radius);font-size:.92rem;outline:none;transition:box-shadow .2s}
+#patient-search:focus{box-shadow:0 0 0 3px rgba(0,94,184,.18)}
+#search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);max-height:260px;overflow-y:auto;z-index:100;display:none;box-shadow:var(--shadow)}
+#search-results .sr-item{padding:10px 12px;cursor:pointer;font-size:.85rem;border-bottom:1px solid var(--border);transition:background .15s}
+#search-results .sr-item:hover{background:var(--nhs-light)}
+.search-sub{font-size:.72rem;color:var(--text-muted);margin-top:6px}
+
+/* Form fields */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-group{display:flex;flex-direction:column;gap:3px}
+.form-group label{font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.4px}
+.form-group input,.form-group select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:.88rem;outline:none;transition:border .2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--nhs-blue)}
+.form-group input[readonly]{background:#f5f5f5;color:var(--text-muted)}
+
+/* Tag box */
+.tag-box{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--border);border-radius:6px;min-height:40px;align-items:center;cursor:text}
+.tag-box input{border:none;outline:none;flex:1;min-width:80px;font-size:.85rem;padding:2px 4px}
+.tag-pill{display:inline-flex;align-items:center;gap:4px;background:var(--nhs-light);color:var(--nhs-dark);padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600}
+.tag-pill .tag-x{cursor:pointer;font-weight:700;margin-left:2px;opacity:.6;font-size:.85rem}
+.tag-pill .tag-x:hover{opacity:1}
+.tag-hint{font-size:.68rem;color:var(--text-muted);margin-top:5px}
+
+/* Medication table */
+.med-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.med-table th{text-align:left;font-size:.7rem;text-transform:uppercase;color:var(--text-muted);padding:6px 4px;border-bottom:1px solid var(--border);font-weight:700}
+.med-table td{padding:5px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.med-table input,.med-table select{width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:.82rem}
+.med-table .del-btn{background:none;border:none;color:var(--nhs-red);cursor:pointer;font-size:1.1rem;padding:2px 6px;border-radius:4px}
+.med-table .del-btn:hover{background:rgba(218,41,28,.08)}
+
+.btn{padding:10px 16px;border:none;border-radius:var(--radius);cursor:pointer;font-size:.88rem;font-weight:600;transition:background .2s,transform .1s}
+.btn:active{transform:scale(.98)}
+.btn-add{background:var(--nhs-light);color:var(--nhs-blue);width:100%;margin-top:8px}
+.btn-add:hover{background:#c4ddf0}
+.btn-run{background:var(--nhs-blue);color:#fff;width:100%;margin-top:10px;font-size:1rem;padding:13px}
+.btn-run:hover{background:var(--nhs-dark)}
+
+/* ── Right Panel ── */
+.right-panel{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;color:var(--text-muted)}
+.empty-state .icon{font-size:3.5rem;margin-bottom:12px}
+.empty-state h2{font-size:1.1rem;color:var(--text);margin-bottom:6px}
+.empty-state p{font-size:.85rem}
+
+/* Results */
+#results-panel{display:none;flex-direction:column;gap:18px}
+
+/* Summary strip */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.summary-item{text-align:center;padding:10px 6px}
+.summary-item .s-label{font-size:.68rem;text-transform:uppercase;color:var(--text-muted);font-weight:700}
+.summary-item .s-value{font-size:1rem;font-weight:700;margin-top:2px}
+.diag-strip{display:flex;flex-wrap:wrap;gap:5px;padding:10px 0 0}
+.diag-chip{background:var(--nhs-light);color:var(--nhs-dark);padding:3px 10px;border-radius:14px;font-size:.72rem;font-weight:600}
+
+/* Alert banners */
+.alert{padding:12px 16px;border-radius:var(--radius);margin-bottom:8px;font-size:.85rem;font-weight:500;border-left:4px solid}
+.alert-critical{background:rgba(140,26,106,.07);border-color:var(--critical);color:var(--critical)}
+.alert-high{background:rgba(218,41,28,.06);border-color:var(--high);color:var(--high)}
+
+/* Score hero */
+.score-hero{display:flex;align-items:center;gap:24px;padding:16px 0;flex-wrap:wrap}
+.score-circle{width:100px;height:100px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:900;flex-shrink:0}
+.score-circle .sc-num{font-size:2rem;line-height:1}
+.score-circle .sc-den{font-size:.72rem;opacity:.8;margin-top:2px}
+.score-meta{display:flex;flex-direction:column;gap:4px;font-size:.88rem}
+.score-meta .band-badge{display:inline-block;padding:3px 14px;border-radius:20px;color:#fff;font-size:.78rem;font-weight:700;margin-top:4px}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:0}
+.tab-btn{padding:10px 18px;font-size:.85rem;font-weight:600;background:none;border:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .2s,border .2s}
+.tab-btn.active{color:var(--nhs-blue);border-bottom-color:var(--nhs-blue)}
+.tab-btn:hover{color:var(--nhs-blue)}
+.tab-content{display:none;padding:16px 0}
+.tab-content.active{display:block}
+
+/* Spider */
+#spider-container{min-height:420px;width:100%}
+
+/* Domain cards grid */
+.domain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:1100px){.domain-grid{grid-template-columns:repeat(2,1fr)}}
+.domain-card{border-radius:var(--radius);padding:14px;border:1px solid var(--border);border-left:4px solid;background:#fff}
+.domain-card .dc-header{display:flex;justify-content:space-between;align-items:center}
+.domain-card .dc-name{font-size:.82rem;font-weight:700}
+.domain-card .dc-score{font-size:1.8rem;font-weight:900}
+.domain-card .dc-band{font-size:.72rem;font-weight:700;margin-top:2px}
+.domain-card .dc-bar{height:6px;background:#eee;border-radius:3px;margin:8px 0 6px;overflow:hidden}
+.domain-card .dc-bar-fill{height:100%;border-radius:3px;transition:width .4s}
+.domain-card .dc-offender{font-size:.72rem;color:var(--text-muted)}
+
+/* Drug attribution table */
+.attr-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.attr-table th{text-align:left;padding:8px 6px;font-size:.7rem;text-transform:uppercase;color:var(--text-muted);border-bottom:2px solid var(--border);font-weight:700}
+.attr-table td{padding:8px 6px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--nhs-light);color:var(--nhs-blue);font-weight:800;font-size:.78rem}
+.drug-cls{font-size:.7rem;color:var(--text-muted)}
+.domain-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:600;color:#fff;margin:1px 2px}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-badge">PolyRisk</div>
+  <div class="header-text">
+    <h1>Polypharmacy Risk Assessment Tool</h1>
+    <p>NHS Clinical Decision Support &middot; STOPP/START v3 &middot; Tisdale QT &middot; mARS &middot; HAS-BLED</p>
+  </div>
+  <div class="header-right">
+    <span class="header-user" id="header-user"></span>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Left Panel -->
+  <div class="left-panel">
+
+    <!-- Card 1: Patient Search -->
+    <div class="card">
+      <div class="card-title">&#x1F50D; Patient Search</div>
+      <div class="search-wrap">
+        <input type="text" id="patient-search" placeholder="Search by NHS number or name..." autocomplete="off">
+        <div id="search-results"></div>
+      </div>
+      <div class="search-sub">Searching 100 synthetic NHS records...</div>
+    </div>
+
+    <!-- Card 2: Patient Details -->
+    <div class="card">
+      <div class="card-title">&#x1F464; Patient Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>NHS Number</label>
+          <input type="text" id="f-nhs" readonly>
+        </div>
+        <div class="form-group">
+          <label>Age</label>
+          <input type="number" id="f-age" min="0" max="120">
+        </div>
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="f-name">
+        </div>
+        <div class="form-group">
+          <label>Sex</label>
+          <select id="f-sex"><option value="F">Female</option><option value="M">Male</option></select>
+        </div>
+        <div class="form-group">
+          <label>eGFR mL/min/1.73m&sup2;</label>
+          <input type="number" id="f-egfr" min="0" max="200">
+        </div>
+        <div class="form-group">
+          <label>Weight (kg)</label>
+          <input type="number" id="f-weight" value="70" min="20" max="300">
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.4px">Diagnoses / History Flags</label>
+        <div class="tag-box" id="tag-box">
+          <input type="text" id="tag-input" placeholder="Type and press Enter...">
+        </div>
+        <div class="tag-hint">AF &middot; HF &middot; CKD3 &middot; CKD4 &middot; T2DM &middot; FALLS_HX &middot; FRAILTY &middot; DEMENTIA &middot; DEPRESSION</div>
+      </div>
+    </div>
+
+    <!-- Card 3: Current Medications -->
+    <div class="card">
+      <div class="card-title">&#x1F48A; Current Medications</div>
+      <table class="med-table">
+        <thead><tr><th>#</th><th>Drug Name</th><th>Dose (mg)</th><th>Frequency</th><th></th></tr></thead>
+        <tbody id="med-tbody"></tbody>
+      </table>
+      <datalist id="drug-list"></datalist>
+      <button class="btn btn-add" onclick="addMedRow()">&#xFF0B; Add Medication</button>
+      <button class="btn btn-run" onclick="runAssessment()">&#x26A1; Run Risk Assessment</button>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+
+    <!-- Empty state -->
+    <div class="card" id="empty-state">
+      <div class="empty-state">
+        <div class="icon">&#x1F9EE;</div>
+        <h2>No patient selected</h2>
+        <p>Search for a patient or enter details manually, then click "Run Risk Assessment".</p>
+      </div>
+    </div>
+
+    <!-- Results panel -->
+    <div id="results-panel">
+
+      <!-- Card A: Patient Summary Strip -->
+      <div class="card" id="card-summary"></div>
+
+      <!-- Card B: Overall Risk Assessment -->
+      <div class="card" id="card-risk"></div>
+
+      <!-- Card C: Tabbed Analysis -->
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="tab-spider">&#x1F578; Spider Chart</button>
+          <button class="tab-btn" data-tab="tab-domains">&#x1F4CA; Domain Scores</button>
+          <button class="tab-btn" data-tab="tab-drugs">&#x1F48A; Drug Attribution</button>
+        </div>
+        <div class="tab-content active" id="tab-spider">
+          <div id="spider-container"></div>
+        </div>
+        <div class="tab-content" id="tab-domains">
+          <div class="domain-grid" id="domain-grid"></div>
+        </div>
+        <div class="tab-content" id="tab-drugs">
+          <table class="attr-table" id="attr-table">
+            <thead><tr><th>Rank</th><th>Drug &amp; Class</th><th>Dose</th><th>Total</th><th>Domain Contributions</th></tr></thead>
+            <tbody id="attr-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================================================================
+   PolyRisk — NHS Polypharmacy Risk Assessment Tool
+   =================================================================== */
+
+// ── Drug Database ──
+const DRUG_DB = {
+  "alfacalcidol":         {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Vitamin D Analog"},
+  "amlodipine":           {fall:2, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"CCB"},
+  "apixaban":             {fall:1, bleed:3, acb:0, qt:0, frailty:1, renal:2, cls:"Anticoagulant"},
+  "aspirin":              {fall:0, bleed:2, acb:0, qt:0, frailty:0, renal:2, cls:"Antiplatelet"},
+  "atorvastatin":         {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Statin"},
+  "beclometasone":        {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Corticosteroid Inhaler"},
+  "bisoprolol":           {fall:1, bleed:0, acb:0, qt:0, frailty:0, renal:1, cls:"Beta-blocker"},
+  "carbocisteine":        {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Mucolytic"},
+  "citalopram":           {fall:2, bleed:1, acb:1, qt:3, frailty:1, renal:0, cls:"SSRI"},
+  "clopidogrel":          {fall:0, bleed:2, acb:0, qt:0, frailty:0, renal:1, cls:"Antiplatelet"},
+  "digoxin":              {fall:1, bleed:0, acb:0, qt:2, frailty:1, renal:3, cls:"Cardiac Glycoside"},
+  "doxazosin":            {fall:3, bleed:0, acb:0, qt:0, frailty:1, renal:0, cls:"Alpha-blocker"},
+  "empagliflozin":        {fall:1, bleed:0, acb:0, qt:0, frailty:1, renal:2, cls:"SGLT2 Inhibitor"},
+  "ezetimibe":            {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Lipid-lowering"},
+  "ferrous sulfate":      {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Iron Supplement"},
+  "furosemide":           {fall:2, bleed:0, acb:0, qt:1, frailty:1, renal:2, cls:"Loop Diuretic"},
+  "gliclazide":           {fall:1, bleed:0, acb:0, qt:0, frailty:1, renal:2, cls:"Sulfonylurea"},
+  "glyceryl trinitrate":  {fall:2, bleed:0, acb:0, qt:0, frailty:1, renal:0, cls:"Nitrate"},
+  "indapamide":           {fall:2, bleed:0, acb:0, qt:1, frailty:1, renal:2, cls:"Thiazide Diuretic"},
+  "insulin aspart":       {fall:2, bleed:0, acb:0, qt:0, frailty:1, renal:1, cls:"Insulin"},
+  "insulin glargine":     {fall:2, bleed:0, acb:0, qt:0, frailty:1, renal:1, cls:"Insulin"},
+  "isosorbide mononitrate":{fall:2, bleed:0, acb:0, qt:0, frailty:1, renal:0, cls:"Nitrate"},
+  "losartan":             {fall:1, bleed:0, acb:0, qt:0, frailty:0, renal:2, cls:"ARB"},
+  "metformin":            {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:3, cls:"Biguanide"},
+  "mirtazapine":          {fall:2, bleed:0, acb:1, qt:1, frailty:1, renal:0, cls:"Atypical Antidepressant"},
+  "montelukast":          {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"LTRA"},
+  "prednisolone":         {fall:1, bleed:1, acb:0, qt:0, frailty:2, renal:0, cls:"Oral Corticosteroid"},
+  "propranolol":          {fall:1, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Beta-blocker"},
+  "ramipril":             {fall:1, bleed:0, acb:0, qt:0, frailty:0, renal:2, cls:"ACEi"},
+  "rivaroxaban":          {fall:1, bleed:3, acb:0, qt:0, frailty:1, renal:2, cls:"Anticoagulant"},
+  "sacubitril/valsartan": {fall:2, bleed:0, acb:0, qt:0, frailty:1, renal:2, cls:"ARNI"},
+  "salbutamol":           {fall:0, bleed:0, acb:0, qt:1, frailty:0, renal:0, cls:"SABA"},
+  "seretide":             {fall:0, bleed:0, acb:0, qt:1, frailty:0, renal:0, cls:"ICS/LABA"},
+  "sertraline":           {fall:2, bleed:1, acb:1, qt:1, frailty:1, renal:0, cls:"SSRI"},
+  "simvastatin":          {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Statin"},
+  "sitagliptin":          {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:1, cls:"DPP4i"},
+  "sodium bicarbonate":   {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0, cls:"Alkalinising Agent"},
+  "spironolactone":       {fall:1, bleed:0, acb:0, qt:1, frailty:0, renal:2, cls:"MRA/K-Sparing"},
+  "ticagrelor":           {fall:0, bleed:2, acb:0, qt:0, frailty:0, renal:1, cls:"Antiplatelet"},
+  "tiotropium":           {fall:0, bleed:0, acb:1, qt:0, frailty:0, renal:0, cls:"LAMA"},
+  "warfarin":             {fall:1, bleed:3, acb:0, qt:0, frailty:1, renal:1, cls:"Anticoagulant"}
+};
+
+// ── History / Diagnosis Modifiers ──
+const HIST_MOD = {
+  fall:    {FALLS_HX:3, OSTEOPOROSIS:2, STROKE:2, PARKINSON:2, DEMENTIA:1, FRAILTY:2},
+  bleed:   {BLEEDING_HX:3, PEPTIC_ULCER:2, THROMBOCYTOPENIA:2, CKD3:1, CKD4:2},
+  acb:     {DEMENTIA:2, GLAUCOMA:1},
+  qt:      {QT_PROLONGED_HX:3, AF:1, HF:1},
+  frailty: {FRAILTY:3, DEMENTIA:2, FALLS_HX:1},
+  renal:   {CKD3:2, CKD4:4, CKD5:6, DIABETES:1, T2DM:1, HF:1, HYPERTENSION:1}
+};
+
+const DOMAIN_RAW_MAX = {fall:15, bleed:12, acb:15, qt:12, frailty:15, renal:15};
+const DOMAINS = ['fall','bleed','acb','qt','frailty','renal'];
+const DOMAIN_LABELS = {fall:'Fall Risk',bleed:'Bleed Risk',acb:'ACB',qt:'QT Risk',frailty:'Frailty',renal:'Renal Risk'};
+const DOMAIN_EMOJI = {fall:'\u{1F9B4}',bleed:'\u{1FA78}',acb:'\u{1F9E0}',qt:'\u{1F493}',frailty:'\u{1F9D3}',renal:'\u{1FAC0}'};
+const FREQ_LIST = ['od','bd','tds','qds','nocte','prn','weekly','monthly','stat'];
+const HIGH_FREQ = ['tds','qds','tid','qid','three','four'];
+
+let PATIENTS_DB = [];
+let currentTags = [];
+
+// ── Utility ──
+function bandOf(score) {
+  if (score < 3) return {label:'LOW', color:'var(--low)', hex:'#007F3B'};
+  if (score < 6) return {label:'MODERATE', color:'var(--moderate)', hex:'#FF8C00'};
+  if (score < 8) return {label:'HIGH', color:'var(--high)', hex:'#DA291C'};
+  return {label:'CRITICAL', color:'var(--critical)', hex:'#8C1A6A'};
+}
+
+function ckdStage(egfr) {
+  if (egfr >= 90) return 'G1';
+  if (egfr >= 60) return 'G2';
+  if (egfr >= 45) return 'G3a';
+  if (egfr >= 30) return 'G3b';
+  if (egfr >= 15) return 'G4';
+  return 'G5';
+}
+
+function egfrColor(v) {
+  if (v < 30) return 'var(--high)';
+  if (v < 60) return 'var(--moderate)';
+  return 'var(--low)';
+}
+
+// ── Name generation ──
+function generateMockName(id, sex) {
+  const maleFirst   = ["James","John","Robert","Michael","William","David","Richard","Joseph","Thomas","Charles"];
+  const femaleFirst = ["Mary","Patricia","Jennifer","Linda","Elizabeth","Barbara","Susan","Jessica","Sarah","Karen"];
+  const lastNames   = ["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez"];
+  const n = parseInt(id.replace(/\D/g, '')) || 0;
+  const first = sex === 'M' ? maleFirst[n % 10] : femaleFirst[n % 10];
+  return first + ' ' + lastNames[(n * 3) % 10];
+}
+
+// ── CSV Loader ──
+async function loadPatients() {
+  try {
+    const res = await fetch('./patients.csv');
+    if (!res.ok) throw new Error('CSV not found');
+    const text = await res.text();
+    parseCSV(text);
+  } catch (e) {
+    console.warn('Could not load patients.csv:', e);
+    document.getElementById('patient-search').placeholder = 'No patient data loaded \u2014 enter details manually';
+  }
+}
+
+function parseCSV(csvText) {
+  const lines = csvText.trim().split('\n');
+  const headers = parseCSVLine(lines[0]);
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    if (cols.length < headers.length) continue;
+    const obj = {};
+    headers.forEach((h, j) => { obj[h.trim()] = (cols[j] || '').trim(); });
+    obj.FullName = generateMockName(obj.Patient_ID, obj.Sex);
+    const dob = new Date(obj.Date_of_Birth);
+    obj.Age = isNaN(dob) ? 75 : new Date().getFullYear() - dob.getFullYear();
+    PATIENTS_DB.push(obj);
+  }
+}
+
+// RFC 4180-aware CSV line parser (handles quoted fields with semicolons)
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < line.length && line[i + 1] === '"') { current += '"'; i++; }
+        else inQuotes = false;
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === ',') { result.push(current); current = ''; }
+      else current += ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+// ── Drug string parser ──
+function parseDrugString(s) {
+  s = s.trim();
+  const rx = /^([a-zA-Z\s\-\/]+)\s*(\d+(?:\.\d+)?)\s*(mg|micrograms|units\/ml|g|nanogram)?/i;
+  const m = s.match(rx);
+  if (m) {
+    let name = m[1].trim().toLowerCase();
+    let dose = parseFloat(m[2]);
+    const unit = (m[3] || 'mg').toLowerCase();
+    if (unit === 'g') dose *= 1000;
+    return {name, dose};
+  }
+  // fallback
+  let name = s.replace(/\b(tablets?|capsules?|spray|inhaler|solution|liquid)\b/gi, '').trim().toLowerCase();
+  return {name, dose: 0};
+}
+
+// ── Datalist setup ──
+function setupDrugList() {
+  const dl = document.getElementById('drug-list');
+  dl.innerHTML = Object.keys(DRUG_DB).sort().map(d => '<option value="' + d + '">').join('');
+}
+
+// ── Medication table management ──
+let medRowId = 0;
+function addMedRow(name, dose, freq) {
+  medRowId++;
+  const tbody = document.getElementById('med-tbody');
+  const tr = document.createElement('tr');
+  tr.dataset.rid = medRowId;
+  tr.innerHTML =
+    '<td class="row-num"></td>' +
+    '<td><input type="text" list="drug-list" placeholder="Drug name" value="' + (name || '') + '"></td>' +
+    '<td><input type="number" min="0" step="any" placeholder="mg" value="' + (dose || '') + '"></td>' +
+    '<td><select>' + FREQ_LIST.map(f => '<option value="' + f + '"' + (f === (freq || 'od') ? ' selected' : '') + '>' + f + '</option>').join('') + '</select></td>' +
+    '<td><button class="del-btn" onclick="delMedRow(this)" title="Remove">&times;</button></td>';
+  tbody.appendChild(tr);
+  reindexMeds();
+}
+
+function delMedRow(btn) {
+  btn.closest('tr').remove();
+  reindexMeds();
+}
+
+function reindexMeds() {
+  document.querySelectorAll('#med-tbody tr').forEach((tr, i) => {
+    tr.querySelector('.row-num').textContent = i + 1;
+  });
+}
+
+function getMeds() {
+  const meds = [];
+  document.querySelectorAll('#med-tbody tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input');
+    const sel = tr.querySelector('select');
+    const name = (inputs[0].value || '').trim().toLowerCase();
+    const dose = parseFloat(inputs[1].value) || 0;
+    const freq = sel.value;
+    if (name) meds.push({name, dose, freq});
+  });
+  return meds;
+}
+
+// ── Tag input ──
+function initTagInput() {
+  const box = document.getElementById('tag-box');
+  const input = document.getElementById('tag-input');
+  box.addEventListener('click', () => input.focus());
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = input.value.replace(/,/g, '').trim().toUpperCase();
+      if (val && !currentTags.includes(val)) {
+        currentTags.push(val);
+        renderTags();
+      }
+      input.value = '';
+    }
+  });
+}
+
+function renderTags() {
+  const box = document.getElementById('tag-box');
+  const input = document.getElementById('tag-input');
+  box.querySelectorAll('.tag-pill').forEach(el => el.remove());
+  currentTags.forEach(t => {
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill';
+    pill.innerHTML = t + ' <span class="tag-x" onclick="removeTag(\'' + t + '\')">&times;</span>';
+    box.insertBefore(pill, input);
+  });
+}
+
+function removeTag(t) {
+  currentTags = currentTags.filter(x => x !== t);
+  renderTags();
+}
+
+function setTags(arr) {
+  currentTags = arr.filter(Boolean);
+  renderTags();
+}
+
+// ── Patient search ──
+function initSearch() {
+  const input = document.getElementById('patient-search');
+  const results = document.getElementById('search-results');
+  input.addEventListener('input', () => {
+    const val = input.value.trim().toLowerCase();
+    if (!val || val.length < 1) { results.style.display = 'none'; return; }
+    const matches = PATIENTS_DB.filter(p =>
+      p.Patient_ID.toLowerCase().includes(val) ||
+      p.FullName.toLowerCase().includes(val)
+    ).slice(0, 15);
+    if (!matches.length) { results.style.display = 'none'; return; }
+    results.innerHTML = matches.map(p =>
+      '<div class="sr-item" onclick="selectPatient(PATIENTS_DB[' + PATIENTS_DB.indexOf(p) + '])">' +
+      '<strong>' + p.Patient_ID + '</strong> \u2014 ' + p.FullName +
+      ' (Age: ' + p.Age + ', ' + p.Sex + ')' +
+      '</div>'
+    ).join('');
+    results.style.display = 'block';
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) results.style.display = 'none';
+  });
+}
+
+function selectPatient(p) {
+  document.getElementById('search-results').style.display = 'none';
+  document.getElementById('patient-search').value = p.FullName;
+  document.getElementById('f-nhs').value = p.Patient_ID;
+  document.getElementById('f-age').value = p.Age;
+  document.getElementById('f-name').value = p.FullName;
+  document.getElementById('f-sex').value = p.Sex;
+  document.getElementById('f-egfr').value = p.Latest_eGFR || '';
+  // Parse conditions
+  const conds = (p.Long_Term_Conditions || '').split(';').map(c => c.trim().toUpperCase()).filter(Boolean);
+  setTags(conds);
+  // Parse medications
+  document.getElementById('med-tbody').innerHTML = '';
+  medRowId = 0;
+  const medStr = p.Current_Repeat_Medications || '';
+  const medParts = medStr.split(';').map(s => s.trim()).filter(Boolean);
+  medParts.forEach(ms => {
+    const parsed = parseDrugString(ms);
+    addMedRow(parsed.name, parsed.dose || '', 'od');
+  });
+  if (!medParts.length) { addMedRow(); addMedRow(); addMedRow(); }
+  runAssessment();
+}
+
+// ── Risk Algorithm ──
+function lookupDrug(name) {
+  name = name.toLowerCase().trim();
+  if (DRUG_DB[name]) return {scores: DRUG_DB[name], cls: DRUG_DB[name].cls};
+  const partial = Object.keys(DRUG_DB).find(k => name.includes(k));
+  if (partial) return {scores: DRUG_DB[partial], cls: DRUG_DB[partial].cls};
+  return {scores: {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0}, cls: 'Unknown'};
+}
+
+function runAlgorithm(meds, tags, age, egfr) {
+  // 1. Drug scores
+  const drugDetails = []; // per-drug breakdown
+  const rawDrug = {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0};
+  meds.forEach(med => {
+    const lu = lookupDrug(med.name);
+    const dm = med.dose > 150 ? 1.15 : 1.0;
+    const fm = HIGH_FREQ.some(f => med.freq.toLowerCase().includes(f)) ? 1.2 : 1.0;
+    const detail = {name: med.name, dose: med.dose, freq: med.freq, cls: lu.cls, domains: {}};
+    let totalDrugScore = 0;
+    DOMAINS.forEach(d => {
+      const base = lu.scores[d];
+      const val = Math.min(base * dm * fm, 3);
+      detail.domains[d] = parseFloat(val.toFixed(2));
+      totalDrugScore += val;
+      rawDrug[d] += val;
+    });
+    detail.total = parseFloat(totalDrugScore.toFixed(2));
+    drugDetails.push(detail);
+  });
+
+  // 2. History scores
+  const histRaw = {fall:0, bleed:0, acb:0, qt:0, frailty:0, renal:0};
+  DOMAINS.forEach(d => {
+    const modMap = HIST_MOD[d];
+    tags.forEach(tag => {
+      if (modMap[tag] !== undefined) histRaw[d] += modMap[tag];
+    });
+  });
+
+  // 3. Age modifier (fall, frailty)
+  let ageMod = 0;
+  if (age >= 85) ageMod = 3;
+  else if (age >= 75) ageMod = 2;
+  else if (age >= 65) ageMod = 1;
+  rawDrug.fall += ageMod;
+  rawDrug.frailty += ageMod;
+
+  // 4. eGFR modifier (renal)
+  let egfrMod = 0;
+  if (egfr >= 90) egfrMod = 0;
+  else if (egfr >= 60) egfrMod = 1;
+  else if (egfr >= 45) egfrMod = 2;
+  else if (egfr >= 30) egfrMod = 3;
+  else if (egfr >= 15) egfrMod = 5;
+  else egfrMod = 7;
+  rawDrug.renal += egfrMod;
+
+  // 5. Polypharmacy modifier
+  let polyMod = 0;
+  if (meds.length >= 10) polyMod = 3;
+  else if (meds.length >= 8) polyMod = 2;
+  else if (meds.length >= 5) polyMod = 1;
+  DOMAINS.forEach(d => { rawDrug[d] += polyMod * 0.5; });
+
+  // 6-7. Final domain scores
+  const domainScores = {};
+  DOMAINS.forEach(d => {
+    const raw = rawDrug[d] + histRaw[d];
+    domainScores[d] = parseFloat(Math.min(raw / DOMAIN_RAW_MAX[d] * 10, 10).toFixed(2));
+  });
+
+  // 8. Overall
+  const overall = parseFloat((DOMAINS.reduce((s, d) => s + domainScores[d], 0) / DOMAINS.length).toFixed(2));
+
+  // Top offenders per domain
+  const topOffenders = {};
+  DOMAINS.forEach(d => {
+    let best = null, bestVal = 0;
+    drugDetails.forEach(dd => {
+      if (dd.domains[d] > bestVal) { bestVal = dd.domains[d]; best = dd.name; }
+    });
+    topOffenders[d] = best || '\u2014';
+  });
+
+  // Sort drug details by total desc
+  drugDetails.sort((a, b) => b.total - a.total);
+
+  return {domainScores, overall, drugDetails, topOffenders};
+}
+
+// ── Run Assessment ──
+function runAssessment() {
+  const meds = getMeds();
+  const age = parseInt(document.getElementById('f-age').value) || 0;
+  const egfr = parseFloat(document.getElementById('f-egfr').value) || 90;
+  const name = document.getElementById('f-name').value || 'Unknown';
+  const nhs = document.getElementById('f-nhs').value || '\u2014';
+  const sex = document.getElementById('f-sex').value;
+  const weight = parseFloat(document.getElementById('f-weight').value) || 70;
+
+  if (!meds.length) return;
+
+  const result = runAlgorithm(meds, currentTags, age, egfr);
+
+  // Hide empty state, show results
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('results-panel').style.display = 'flex';
+
+  renderSummary(name, nhs, age, sex, egfr, weight, meds.length);
+  renderRiskCard(result, meds.length, age, egfr);
+  renderSpider(result);
+  renderDomainGrid(result);
+  renderDrugTable(result);
+}
+
+// ── Render: Summary Strip ──
+function renderSummary(name, nhs, age, sex, egfr, weight, medCount) {
+  const eColor = egfrColor(egfr);
+  const stage = ckdStage(egfr);
+  document.getElementById('card-summary').innerHTML =
+    '<div class="card-title">&#x1F4CB; Patient Summary</div>' +
+    '<div class="summary-grid">' +
+      '<div class="summary-item"><div class="s-label">Name</div><div class="s-value">' + name + '</div></div>' +
+      '<div class="summary-item"><div class="s-label">NHS No.</div><div class="s-value">' + nhs + '</div></div>' +
+      '<div class="summary-item"><div class="s-label">Age / Sex</div><div class="s-value">' + age + ' / ' + sex + '</div></div>' +
+      '<div class="summary-item"><div class="s-label">eGFR (' + stage + ')</div><div class="s-value" style="color:' + eColor + '">' + egfr + '</div></div>' +
+      '<div class="summary-item"><div class="s-label">Weight</div><div class="s-value">' + weight + ' kg</div></div>' +
+      '<div class="summary-item"><div class="s-label">Medications</div><div class="s-value">' + medCount + '</div></div>' +
+    '</div>' +
+    (currentTags.length ? '<div class="diag-strip">' + currentTags.map(t => '<span class="diag-chip">' + t + '</span>').join('') + '</div>' : '');
+}
+
+// ── Render: Risk Card ──
+function renderRiskCard(result, medCount, age, egfr) {
+  const {domainScores, overall} = result;
+  const band = bandOf(overall);
+  let alerts = '';
+
+  if (overall >= 8) alerts += '<div class="alert alert-critical">CRITICAL overall risk (' + overall + '/10). Urgent clinical pharmacist review recommended.</div>';
+  else if (overall >= 6) alerts += '<div class="alert alert-high">HIGH overall risk (' + overall + '/10). Prompt structured medication review recommended.</div>';
+  if (domainScores.renal >= 8) alerts += '<div class="alert alert-critical">Critical renal risk (' + domainScores.renal.toFixed(1) + '/10). Review nephrotoxic medications and renal dose adjustments.</div>';
+  if (domainScores.bleed >= 7 && domainScores.fall >= 7) alerts += '<div class="alert alert-high">High concurrent bleeding (' + domainScores.bleed.toFixed(1) + ') + fall risk (' + domainScores.fall.toFixed(1) + '). Significant haemorrhage risk with falls.</div>';
+  if (domainScores.qt >= 8) alerts += '<div class="alert alert-high">High QT Prolongation risk (' + domainScores.qt.toFixed(1) + '/10). Check ECG.</div>';
+
+  document.getElementById('card-risk').innerHTML =
+    '<div class="card-title">&#x26A1; Overall Risk Assessment</div>' +
+    alerts +
+    '<div class="score-hero">' +
+      '<div class="score-circle" style="background:' + band.color + '">' +
+        '<span class="sc-num">' + overall + '</span>' +
+        '<span class="sc-den">/ 10</span>' +
+      '</div>' +
+      '<div class="score-meta">' +
+        '<span><strong>' + medCount + '</strong> medications &middot; Age <strong>' + age + '</strong> &middot; eGFR <strong>' + egfr + '</strong></span>' +
+        '<span class="band-badge" style="background:' + band.color + '">' + band.label + '</span>' +
+      '</div>' +
+    '</div>';
+}
+
+// ── Render: Spider Chart ──
+function renderSpider(result) {
+  const {domainScores} = result;
+  const labels = DOMAINS.map(d => DOMAIN_LABELS[d]);
+  const values = DOMAINS.map(d => domainScores[d]);
+  const markerColors = DOMAINS.map(d => bandOf(domainScores[d]).hex);
+
+  // Zone rings
+  const makeZone = (r, color, name) => ({
+    type: 'scatterpolar', r: Array(6).fill(r).concat([r]),
+    theta: labels.concat([labels[0]]), fill: 'toself',
+    fillcolor: color, line: {color: 'transparent'}, name, hoverinfo: 'skip', showlegend: true
+  });
+
+  const traces = [
+    makeZone(10, 'rgba(140,26,106,0.06)', 'Critical Zone'),
+    makeZone(8, 'rgba(218,41,28,0.06)', 'High Zone'),
+    makeZone(6, 'rgba(255,140,0,0.06)', 'Moderate Zone'),
+    {
+      type: 'scatterpolar',
+      r: values.concat([values[0]]),
+      theta: labels.concat([labels[0]]),
+      fill: 'toself',
+      fillcolor: 'rgba(0,94,184,0.15)',
+      line: {color: '#005EB8', width: 2},
+      marker: {size: 9, color: markerColors},
+      name: 'Patient Score',
+      hovertemplate: '%{theta}: %{r:.1f}/10<extra></extra>'
+    }
+  ];
+
+  const layout = {
+    polar: {
+      radialaxis: {visible: true, range: [0, 10], tickvals: [2, 4, 6, 8, 10], tickfont: {size: 10, color: '#999'}},
+      angularaxis: {tickfont: {size: 12, color: '#333', weight: 600}}
+    },
+    showlegend: false,
+    margin: {l: 60, r: 60, t: 30, b: 30},
+    paper_bgcolor: 'transparent',
+    plot_bgcolor: 'transparent',
+    font: {family: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'}
+  };
+
+  Plotly.newPlot('spider-container', traces, layout, {responsive: true, displayModeBar: false});
+}
+
+// ── Render: Domain Grid ──
+function renderDomainGrid(result) {
+  const {domainScores, topOffenders} = result;
+  const grid = document.getElementById('domain-grid');
+  grid.innerHTML = DOMAINS.map(d => {
+    const score = domainScores[d];
+    const band = bandOf(score);
+    return '<div class="domain-card" style="border-left-color:' + band.color + '">' +
+      '<div class="dc-header">' +
+        '<span class="dc-name">' + DOMAIN_EMOJI[d] + ' ' + DOMAIN_LABELS[d] + '</span>' +
+        '<span class="dc-score" style="color:' + band.color + '">' + score.toFixed(1) + '</span>' +
+      '</div>' +
+      '<div class="dc-band" style="color:' + band.color + '">' + band.label + '</div>' +
+      '<div class="dc-bar"><div class="dc-bar-fill" style="width:' + (score * 10) + '%;background:' + band.color + '"></div></div>' +
+      '<div class="dc-offender">Top offender: <strong>' + topOffenders[d] + '</strong></div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── Render: Drug Attribution Table ──
+function renderDrugTable(result) {
+  const {drugDetails} = result;
+  const tbody = document.getElementById('attr-tbody');
+  tbody.innerHTML = drugDetails.map((dd, i) => {
+    const chips = DOMAINS.filter(d => dd.domains[d] > 0).map(d => {
+      const b = bandOf(dd.domains[d] * 3.33); // scale 0-3 -> ~0-10 for color
+      return '<span class="domain-chip" style="background:' + b.color + '">' + DOMAIN_LABELS[d] + ' ' + dd.domains[d].toFixed(1) + '</span>';
+    }).join('');
+    return '<tr>' +
+      '<td><span class="rank-badge">' + (i + 1) + '</span></td>' +
+      '<td><strong>' + dd.name + '</strong><br><span class="drug-cls">' + dd.cls + '</span></td>' +
+      '<td>' + (dd.dose || '\u2014') + '</td>' +
+      '<td><strong>' + dd.total.toFixed(1) + '</strong></td>' +
+      '<td>' + (chips || '\u2014') + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ── Tabs ──
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      const panel = document.getElementById(btn.dataset.tab);
+      panel.classList.add('active');
+      if (btn.dataset.tab === 'tab-spider') {
+        Plotly.Plots.resize('spider-container');
+      }
+    });
+  });
+}
+
+// ── Auth ──
+function logout() {
+  sessionStorage.removeItem('polyrisk_auth');
+  window.location.replace('./index.html');
+}
+
+// ── Init ──
+window.onload = async function() {
+  const user = sessionStorage.getItem('polyrisk_auth');
+  const userEl = document.getElementById('header-user');
+  if (userEl && user) userEl.textContent = '\uD83D\uDC64 ' + user;
+  setupDrugList();
+  initTagInput();
+  initSearch();
+  initTabs();
+  addMedRow(); addMedRow(); addMedRow();
+  await loadPatients();
+};
+</script>
+</body>
+</html>
