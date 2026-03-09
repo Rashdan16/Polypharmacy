@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026-03-09] - Replace PolyRisk badge with PharmAware SVG logo
+- Replaced text badge with inline SVG recreation of PharmAware logo (circular arrows icon + styled text)
+- Logo is transparent — renders cleanly on any background
+- Updated in: main app header, login page top bar, login card header
+- Files affected: `polyrisk.html`, `index.html`
+
 ## [2026-03-09] - Add login page and auth guard
 - Created `index.html` login page with NHS branding, matching the main app's design
 - Demo credentials shown on page: `nhs.admin / PolyRisk2026`

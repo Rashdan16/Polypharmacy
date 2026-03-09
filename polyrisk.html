@@ -20,7 +20,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
 
 /* ── Header ── */
 .header{background:linear-gradient(135deg,var(--nhs-dark),var(--nhs-blue));padding:18px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.header-badge{background:#fff;color:var(--nhs-blue);font-weight:900;font-size:1.25rem;padding:6px 18px;border-radius:8px;letter-spacing:.5px;white-space:nowrap}
+.header-badge{display:flex;align-items:center}
 .header-text h1{color:#fff;font-size:1.25rem;font-weight:700;line-height:1.3}
 .header-text p{color:rgba(255,255,255,.82);font-size:.78rem;margin-top:2px}
 .header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
@@ -148,7 +148,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
 
 <!-- Header -->
 <div class="header">
-  <div class="header-badge">PolyRisk</div>
+  <div class="header-badge">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 68" height="44">
+      <defs>
+        <marker id="mT" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#4ECDC4"/></marker>
+        <marker id="mB" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#7092B0"/></marker>
+      </defs>
+      <!-- Teal arc: 150°→300° clockwise (bottom-left → top → top-right) -->
+      <path d="M14.2 47 A24 24 0 0 1 47 14.2" fill="none" stroke="#4ECDC4" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mT)"/>
+      <!-- Blue arc: 300°→60° clockwise (top-right → right → bottom-right) -->
+      <path d="M47 14.2 A24 24 0 0 1 47 55.8" fill="none" stroke="#7092B0" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mB)"/>
+      <!-- Green arc: 60°→150° clockwise (bottom-right → left side) -->
+      <path d="M47 55.8 A24 24 0 0 1 14.2 47" fill="none" stroke="#5CB85C" stroke-width="5.5" stroke-linecap="round"/>
+      <text font-family="'Segoe UI',system-ui,sans-serif" font-size="32" font-weight="700" y="46">
+        <tspan x="72" fill="#5CB85C">Pharm</tspan><tspan fill="#7092B0">Aware</tspan>
+      </text>
+    </svg>
+  </div>
   <div class="header-text">
     <h1>Polypharmacy Risk Assessment Tool</h1>
     <p>NHS Clinical Decision Support &middot; STOPP/START v3 &middot; Tisdale QT &middot; mARS &middot; HAS-BLED</p>

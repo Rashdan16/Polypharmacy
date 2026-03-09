@@ -23,7 +23,7 @@ body{
   background:linear-gradient(135deg,var(--nhs-dark),var(--nhs-blue));
   padding:14px 28px;display:flex;align-items:center;gap:14px;
 }
-.top-bar .badge{background:#fff;color:var(--nhs-blue);font-weight:900;font-size:1.1rem;padding:5px 16px;border-radius:7px}
+.top-bar .badge{display:flex;align-items:center}
 .top-bar p{color:rgba(255,255,255,.8);font-size:.8rem}
 
 /* Main */
@@ -81,15 +81,41 @@ footer{text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted)}
 <body>
 
 <div class="top-bar">
-  <div class="badge">PolyRisk</div>
+  <div class="badge">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 68" height="40">
+      <defs>
+        <marker id="mT2" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#4ECDC4"/></marker>
+        <marker id="mB2" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#7092B0"/></marker>
+      </defs>
+      <path d="M14.2 47 A24 24 0 0 1 47 14.2" fill="none" stroke="#4ECDC4" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mT2)"/>
+      <path d="M47 14.2 A24 24 0 0 1 47 55.8" fill="none" stroke="#7092B0" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mB2)"/>
+      <path d="M47 55.8 A24 24 0 0 1 14.2 47" fill="none" stroke="#5CB85C" stroke-width="5.5" stroke-linecap="round"/>
+      <text font-family="'Segoe UI',system-ui,sans-serif" font-size="32" font-weight="700" y="46">
+        <tspan x="72" fill="#5CB85C">Pharm</tspan><tspan fill="#7092B0">Aware</tspan>
+      </text>
+    </svg>
+  </div>
   <p>NHS Clinical Decision Support</p>
 </div>
 
 <main>
   <div class="login-card">
     <div class="login-header">
-      <div class="icon">&#x1F512;</div>
-      <h1>Sign in to PolyRisk</h1>
+      <div style="display:flex;justify-content:center;margin-bottom:14px">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 68" height="48">
+          <defs>
+            <marker id="mT3" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#4ECDC4"/></marker>
+            <marker id="mB3" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#7092B0"/></marker>
+          </defs>
+          <path d="M14.2 47 A24 24 0 0 1 47 14.2" fill="none" stroke="#4ECDC4" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mT3)"/>
+          <path d="M47 14.2 A24 24 0 0 1 47 55.8" fill="none" stroke="#7092B0" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mB3)"/>
+          <path d="M47 55.8 A24 24 0 0 1 14.2 47" fill="none" stroke="#5CB85C" stroke-width="5.5" stroke-linecap="round"/>
+          <text font-family="'Segoe UI',system-ui,sans-serif" font-size="32" font-weight="700" y="46">
+            <tspan x="72" fill="#5CB85C">Pharm</tspan><tspan fill="#7092B0">Aware</tspan>
+          </text>
+        </svg>
+      </div>
+      <h1>Sign in</h1>
       <p>Polypharmacy Risk Assessment Tool</p>
     </div>
     <div class="login-body">
