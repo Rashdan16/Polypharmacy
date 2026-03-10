@@ -69,6 +69,41 @@ body.dark .diag-chip{background:rgba(0,94,184,.3);color:#93c5fd}
 body.dark .summary-item .s-value{color:var(--text)}
 body.dark .dc-offender{color:var(--text-muted)}
 
+/* ── High Contrast ── */
+body.high-contrast{
+  --bg:#000;--card:#000;--text:#fff;--text-muted:#fff;
+  --border:#fff;--nhs-light:#000;--nhs-blue:#fff;--nhs-dark:#000;
+  --low:#0f0;--moderate:#ff0;--high:#f00;--critical:#f0f;
+}
+body.high-contrast .header{background:#000;border-bottom:2px solid #fff}
+body.high-contrast .card{border:2px solid #fff}
+body.high-contrast .card-title{color:#ff0;border-color:#ff0}
+body.high-contrast .form-group input,body.high-contrast .form-group select{background:#000;color:#fff;border:2px solid #fff}
+body.high-contrast .form-group input[readonly]{background:#111;color:#ccc}
+body.high-contrast .form-group label{color:#ff0}
+body.high-contrast .tag-box{background:#000;border:2px solid #fff}
+body.high-contrast .tag-box input{color:#fff}
+body.high-contrast .tag-pill{background:#003;color:#ff0;border:1px solid #ff0}
+body.high-contrast .med-table input,body.high-contrast .med-table select{background:#000;color:#fff;border:1px solid #fff}
+body.high-contrast .med-table th{color:#ff0}
+body.high-contrast #search-results{background:#000;border:2px solid #fff}
+body.high-contrast .sr-item{color:#fff;border-color:#444}
+body.high-contrast .sr-item:hover{background:#003}
+body.high-contrast .btn-add{background:#003;color:#ff0;border:2px solid #ff0}
+body.high-contrast .btn-run{background:#005EB8;border:2px solid #fff}
+body.high-contrast .btn-clear{color:#f00;border:2px solid #f00}
+body.high-contrast .tab-btn{color:#fff}
+body.high-contrast .tab-btn.active{color:#ff0;border-color:#ff0}
+body.high-contrast .tabs{border-color:#fff}
+body.high-contrast .domain-card{background:#000;border:2px solid #fff}
+body.high-contrast .drop-zone{border-color:#fff}
+body.high-contrast .rank-badge{background:#003;color:#ff0}
+body.high-contrast .diag-chip{background:#003;color:#ff0;border:1px solid #ff0}
+body.high-contrast .alert-critical{background:#1a001a;border-color:#f0f;color:#f0f}
+body.high-contrast .alert-high{background:#1a0000;border-color:#f00;color:#f00}
+body.high-contrast .score-circle{border:3px solid #fff}
+body.high-contrast .band-badge{border:1px solid #fff}
+
 /* ── Layout ── */
 .layout{display:grid;grid-template-columns:340px 1fr;gap:18px;padding:18px;max-width:1400px;margin:0 auto}
 @media(max-width:900px){.layout{grid-template-columns:1fr}}
@@ -231,6 +266,8 @@ body.dark .dc-offender{color:var(--text-muted)}
   <div class="header-right">
     <div class="header-controls">
       <button class="ctrl-btn" id="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">&#x1F319;</button>
+      <div class="ctrl-divider"></div>
+      <button class="ctrl-btn" id="hc-toggle" onclick="toggleHighContrast()" title="Toggle high contrast">&#x25D1;</button>
       <div class="ctrl-divider"></div>
       <button class="ctrl-btn" onclick="adjustFont(-1)" title="Decrease text size">A&#x2212;</button>
       <button class="ctrl-btn" onclick="adjustFont(1)" title="Increase text size">A&#x2B;</button>
@@ -1159,6 +1196,13 @@ function toggleDark() {
   document.getElementById('dark-toggle').textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
 }
 
+// ── High Contrast ──
+function toggleHighContrast() {
+  const isHC = document.body.classList.toggle('high-contrast');
+  localStorage.setItem('polyrisk_hc', isHC ? '1' : '0');
+  document.getElementById('hc-toggle').style.outline = isHC ? '2px solid #ff0' : '';
+}
+
 // ── Font Size ──
 const FONT_SIZES = [13, 14, 15, 16, 17, 18, 20];
 let fontIdx = 2; // default 15px
@@ -1211,6 +1255,11 @@ window.onload = async function() {
   initSearch();
   initTabs();
   initAIUpload();
+  // Restore high contrast
+  if (localStorage.getItem('polyrisk_hc') === '1') {
+    document.body.classList.add('high-contrast');
+    document.getElementById('hc-toggle').style.outline = '2px solid #ff0';
+  }
   // Restore dark mode
   if (localStorage.getItem('polyrisk_dark') === '1') {
     document.body.classList.add('dark');
