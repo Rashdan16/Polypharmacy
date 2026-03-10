@@ -214,10 +214,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
     <!-- Card 1b: AI Document Import -->
     <div class="card">
       <div class="card-title">&#x1F916; AI Document Import</div>
-      <div class="apikey-row">
-        <input type="password" id="ai-api-key" placeholder="Paste OpenAI API key (sk-...)">
-        <button onclick="saveApiKey()">&#x1F512; Save Key</button>
-      </div>
       <div class="drop-zone" id="drop-zone">
         <input type="file" id="ai-file-input" accept=".pdf,.docx,image/*">
         <div class="dz-icon">&#x1F4C4;</div>
@@ -897,11 +893,6 @@ function setAiStatus(msg, type) {
   el.className = 'ai-status ' + type;
 }
 
-function saveApiKey() {
-  const key = document.getElementById('ai-api-key').value.trim();
-  if (!key) { setAiStatus('Please enter an API key.', 'error'); return; }
-  setAiStatus('\u2713 API key ready. Drop a document to begin.', 'ok');
-}
 
 function initAIUpload() {
   const zone = document.getElementById('drop-zone');
@@ -922,8 +913,8 @@ function initAIUpload() {
 }
 
 async function handleDocumentFile(file) {
-  const key = document.getElementById('ai-api-key').value.trim() || window.OPENAI_API_KEY || '';
-  if (!key) { setAiStatus('\u26A0 Please save your OpenAI API key first.', 'error'); return; }
+  const key = window.OPENAI_API_KEY || '';
+  if (!key) { setAiStatus('\u26A0 API key not found. Check config.js.', 'error'); return; }
 
   setAiStatus('\uD83D\uDCC4 Reading document\u2026', 'info');
   try {
@@ -1131,8 +1122,7 @@ window.onload = async function() {
   initTabs();
   initAIUpload();
   if (window.OPENAI_API_KEY && window.OPENAI_API_KEY !== 'YOUR_OPENAI_API_KEY_HERE') {
-    document.getElementById('ai-api-key').value = window.OPENAI_API_KEY;
-    setAiStatus('\u2713 API key loaded from config. Drop a document to begin.', 'ok');
+    setAiStatus('\u2713 API key loaded. Drop a document to begin.', 'ok');
   }
   addMedRow(); addMedRow(); addMedRow();
   await loadPatients();
