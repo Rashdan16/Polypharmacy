@@ -6,6 +6,7 @@
 <script>if(!sessionStorage.getItem('polyrisk_auth'))window.location.replace('./index.html');</script>
 <title>PolyRisk — NHS Polypharmacy Risk Assessment</title>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -143,6 +144,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
 .rank-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--nhs-light);color:var(--nhs-blue);font-weight:800;font-size:.78rem}
 .drug-cls{font-size:.7rem;color:var(--text-muted)}
 .domain-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:600;color:#fff;margin:1px 2px}
+
+/* ── AI Document Import Card ── */
+.drop-zone{border:2px dashed var(--nhs-blue);border-radius:var(--radius);padding:22px 16px;text-align:center;cursor:pointer;transition:background .2s,border .2s;position:relative}
+.drop-zone.drag-over{background:var(--nhs-light);border-style:solid}
+.drop-zone .dz-icon{font-size:2rem;margin-bottom:6px;pointer-events:none}
+.drop-zone .dz-text{font-size:.82rem;color:var(--text-muted);pointer-events:none}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.ai-status{margin-top:10px;padding:10px 12px;border-radius:7px;font-size:.82rem;display:none}
+.ai-status.info{background:var(--nhs-light);color:var(--nhs-dark);display:block}
+.ai-status.error{background:rgba(218,41,28,.07);color:var(--nhs-red);border-left:3px solid var(--nhs-red);display:block}
+.ai-status.ok{background:rgba(0,127,59,.07);color:var(--nhs-green);border-left:3px solid var(--nhs-green);display:block}
+.apikey-row{display:flex;gap:6px;margin-bottom:12px}
+.apikey-row input{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:.82rem;outline:none}
+.apikey-row input:focus{border-color:var(--nhs-blue)}
+.apikey-row button{padding:7px 12px;background:var(--nhs-light);color:var(--nhs-blue);border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.apikey-row button:hover{background:#c4ddf0}
 </style>
 </head>
 <body>
@@ -190,6 +207,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
         <div id="search-results"></div>
       </div>
       <div class="search-sub">Searching 100 synthetic NHS records...</div>
+    </div>
+
+    <!-- Card 1b: AI Document Import -->
+    <div class="card">
+      <div class="card-title">&#x1F916; AI Document Import</div>
+      <div class="apikey-row">
+        <input type="password" id="ai-api-key" placeholder="Paste OpenAI API key (sk-...)">
+        <button onclick="saveApiKey()">&#x1F512; Save Key</button>
+      </div>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="ai-file-input" accept=".pdf,image/*">
+        <div class="dz-icon">&#x1F4C4;</div>
+        <div class="dz-text"><strong>Drop PDF or image here</strong><br>or click to browse &mdash; AI will extract patient details</div>
+      </div>
+      <div class="ai-status" id="ai-status"></div>
     </div>
 
     <!-- Card 2: Patient Details -->
@@ -856,6 +888,167 @@ function initTabs() {
   });
 }
 
+// ── AI Document Import ──
+function setAiStatus(msg, type) {
+  const el = document.getElementById('ai-status');
+  el.textContent = msg;
+  el.className = 'ai-status ' + type;
+}
+
+function saveApiKey() {
+  const key = document.getElementById('ai-api-key').value.trim();
+  if (!key) { setAiStatus('Please enter an API key.', 'error'); return; }
+  sessionStorage.setItem('openai_key', key);
+  setAiStatus('\u2713 API key saved for this session.', 'ok');
+}
+
+function initAIUpload() {
+  const zone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('ai-file-input');
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleDocumentFile(file);
+  });
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleDocumentFile(e.target.files[0]);
+    e.target.value = '';
+  });
+}
+
+async function handleDocumentFile(file) {
+  const key = sessionStorage.getItem('openai_key') || document.getElementById('ai-api-key').value.trim();
+  if (!key) { setAiStatus('\u26A0 Please save your OpenAI API key first.', 'error'); return; }
+
+  setAiStatus('\uD83D\uDCC4 Reading document\u2026', 'info');
+  try {
+    let base64Images;
+    if (file.type === 'application/pdf') {
+      base64Images = await pdfToBase64Images(file);
+    } else {
+      base64Images = [await imageToBase64(file)];
+    }
+    setAiStatus('\uD83E\uDD16 Sending to AI\u2026', 'info');
+    await callOpenAI(base64Images, key);
+  } catch (err) {
+    console.error(err);
+    setAiStatus('\u274C Error: ' + (err.message || 'Unknown error'), 'error');
+  }
+}
+
+function imageToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      // Strip the data URI prefix, return only base64 content + keep the full data URL for API
+      resolve(dataUrl);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function pdfToBase64Images(file) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js not loaded');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+  const pageCount = Math.min(pdf.numPages, 3);
+  const images = [];
+  for (let i = 1; i <= pageCount; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({scale: 1.5});
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
+    images.push(canvas.toDataURL('image/jpeg', 0.85));
+  }
+  return images;
+}
+
+async function callOpenAI(dataUrls, key) {
+  const systemPrompt = `You are a medical records parser for an NHS polypharmacy risk assessment system.
+Extract patient information from the provided document image(s) and return ONLY valid JSON with no markdown, no explanation — just the raw JSON object.
+
+Return this exact structure:
+{
+  "name": "Full patient name or null",
+  "nhs_number": "NHS number string or null",
+  "age": number or null,
+  "sex": "M" or "F" or null,
+  "egfr": number or null,
+  "weight_kg": number or null,
+  "diagnoses": [],
+  "medications": []
+}
+
+For diagnoses, use ONLY these codes where applicable (leave others out):
+AF, HF, CKD3, CKD4, CKD5, T2DM, HYPERTENSION, COPD, ASTHMA, DEPRESSION, ANXIETY, DEMENTIA, FRAILTY, FALLS_HX, OSTEOPOROSIS, STROKE, PARKINSON, BLEEDING_HX, PEPTIC_ULCER, OBESITY, GLAUCOMA, QT_PROLONGED_HX, THROMBOCYTOPENIA
+
+For each medication include: {"name":"lowercase drug name","dose":number_in_mg_or_0,"frequency":"od|bd|tds|qds|nocte|prn|weekly|monthly|stat"}
+If you cannot determine a value, use null. Return empty arrays if nothing found.`;
+
+  const imageMessages = dataUrls.map(url => ({
+    type: 'image_url',
+    image_url: {url, detail: 'high'}
+  }));
+
+  const body = {
+    model: 'gpt-4o',
+    max_tokens: 1500,
+    messages: [
+      {role: 'system', content: systemPrompt},
+      {role: 'user', content: [{type: 'text', text: 'Extract all patient details from this document.'}, ...imageMessages]}
+    ]
+  };
+
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key},
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'API error ' + res.status);
+  }
+
+  const json = await res.json();
+  const content = json.choices?.[0]?.message?.content || '';
+  // Strip markdown code fences if present
+  const cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  let data;
+  try { data = JSON.parse(cleaned); }
+  catch { throw new Error('Could not parse AI response as JSON.'); }
+
+  populateFromAI(data);
+}
+
+function populateFromAI(data) {
+  if (data.name)       document.getElementById('f-name').value = data.name;
+  if (data.nhs_number) document.getElementById('f-nhs').value = data.nhs_number;
+  if (data.age)        document.getElementById('f-age').value = data.age;
+  if (data.sex)        document.getElementById('f-sex').value = data.sex;
+  if (data.egfr)       document.getElementById('f-egfr').value = data.egfr;
+  if (data.weight_kg)  document.getElementById('f-weight').value = data.weight_kg;
+  if (data.diagnoses?.length)   setTags(data.diagnoses);
+  if (data.medications?.length) {
+    document.getElementById('med-tbody').innerHTML = '';
+    medRowId = 0;
+    data.medications.forEach(m => addMedRow(m.name || '', m.dose || '', m.frequency || 'od'));
+  }
+  const medCount = data.medications?.length || 0;
+  const diagCount = data.diagnoses?.length || 0;
+  setAiStatus('\u2705 Extracted: ' + (data.name || 'patient') + ' \u00B7 ' + medCount + ' medication(s) \u00B7 ' + diagCount + ' diagnosis flag(s). Assessment running\u2026', 'ok');
+  if (medCount > 0) runAssessment();
+}
+
 // ── Auth ──
 function logout() {
   sessionStorage.removeItem('polyrisk_auth');
@@ -871,6 +1064,9 @@ window.onload = async function() {
   initTagInput();
   initSearch();
   initTabs();
+  initAIUpload();
+  const savedKey = sessionStorage.getItem('openai_key');
+  if (savedKey) document.getElementById('ai-api-key').value = savedKey;
   addMedRow(); addMedRow(); addMedRow();
   await loadPatients();
 };

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2026-03-10] - Add AI Document Import card
+- New card between Patient Search and Patient Details with drag-and-drop zone for PDFs and images
+- Uses OpenAI GPT-4o Vision to extract: name, NHS number, age, sex, eGFR, weight, diagnoses, medications
+- PDF.js converts PDF pages to canvas images before sending to OpenAI (API doesn't accept raw PDFs)
+- API key stored in sessionStorage; restored on page reload; status indicator shows progress and errors
+- On success, auto-populates all form fields and runs risk assessment
+- Files affected: `polyrisk.html`
+
 ## [2026-03-09] - Replace PolyRisk badge with PharmAware SVG logo
 - Replaced text badge with inline SVG recreation of PharmAware logo (circular arrows icon + styled text)
 - Logo is transparent — renders cleanly on any background
