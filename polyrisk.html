@@ -898,8 +898,7 @@ function setAiStatus(msg, type) {
 function saveApiKey() {
   const key = document.getElementById('ai-api-key').value.trim();
   if (!key) { setAiStatus('Please enter an API key.', 'error'); return; }
-  sessionStorage.setItem('openai_key', key);
-  setAiStatus('\u2713 API key saved for this session.', 'ok');
+  setAiStatus('\u2713 API key ready. Drop a document to begin.', 'ok');
 }
 
 function initAIUpload() {
@@ -921,7 +920,7 @@ function initAIUpload() {
 }
 
 async function handleDocumentFile(file) {
-  const key = sessionStorage.getItem('openai_key') || document.getElementById('ai-api-key').value.trim();
+  const key = document.getElementById('ai-api-key').value.trim();
   if (!key) { setAiStatus('\u26A0 Please save your OpenAI API key first.', 'error'); return; }
 
   setAiStatus('\uD83D\uDCC4 Reading document\u2026', 'info');
@@ -1065,8 +1064,6 @@ window.onload = async function() {
   initSearch();
   initTabs();
   initAIUpload();
-  const savedKey = sessionStorage.getItem('openai_key');
-  if (savedKey) document.getElementById('ai-api-key').value = savedKey;
   addMedRow(); addMedRow(); addMedRow();
   await loadPatients();
 };
