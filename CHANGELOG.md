@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026-03-11] - Fix zoomed-out appearance
+- Increased base font size from 15px to 16px (browser default) in polyrisk.html and patient-portal.html
+- Files affected: `polyrisk.html`, `patient-portal.html`
+
 ## [2026-03-11] - Auto-calculate Risk Score in Patient Portal
 - Patient portal now auto-calculates risk score and domain breakdown from the patient's own data (medications, conditions, age, eGFR) when no clinician-saved assessments exist
 - Added full risk engine (DRUG_DB, HIST_MOD, DOMAIN_RAW_MAX, `calcRiskFromPatient()`) to `patient-portal.html`, mirroring the algorithm in `polyrisk.html`
