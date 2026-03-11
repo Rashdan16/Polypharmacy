@@ -1,5 +1,10 @@
 # Changelog
 
+## [2026-03-11] - Remove Overview tab, make Medication Schedule the default
+- Removed the Overview tab button and its panel (contacts card) entirely
+- Medication Schedule is now the first and default active tab on page load
+- Files affected: `patient-portal.html`, `CHANGELOG.md`
+
 ## [2026-03-11] - Add Medication Schedule tab & remove risk data from Patient Portal
 - **Removed** from Overview tab: score card (risk gauge), domain breakdown grid, overview-grid layout, "Understanding your risk score" advice banner, and all related JS (`calcRiskFromPatient()`, `DRUG_DB`, `HIST_MOD`, `DOMAIN_RAW_MAX`). Overview now shows only the contacts card.
 - **Added** new "Medication Schedule" tab between Overview and Medications with:

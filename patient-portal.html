@@ -394,8 +394,7 @@ body.high-contrast .med-ev{border-left-width:4px}
     <div class="hero-name" id="hero-name"><div class="skel" style="width:200px;height:28px;background:rgba(255,255,255,.15)"></div></div>
     <div class="hero-sub" id="hero-sub">Loading your health record&hellip;</div>
     <div class="hero-tabs">
-      <button class="hero-tab active" onclick="switchTab('overview',this)">Overview</button>
-      <button class="hero-tab" onclick="switchTab('schedule',this)">Medication Schedule</button>
+      <button class="hero-tab active" onclick="switchTab('schedule',this)">Medication Schedule</button>
       <button class="hero-tab" onclick="switchTab('medications',this)">Medications</button>
       <button class="hero-tab" onclick="switchTab('history',this)">Assessment History</button>
       <button class="hero-tab" onclick="switchTab('profile',this)">My Profile</button>
@@ -406,33 +405,8 @@ body.high-contrast .med-ev{border-left-width:4px}
 <!-- Page -->
 <div class="page">
 
-  <!-- Overview Tab -->
-  <div class="tab-panel active" id="panel-overview">
-    <div class="card">
-      <div class="card-title">&#x1F4DE; Who to Contact</div>
-      <div class="contact-grid">
-        <div class="contact-tile">
-          <div class="ct-icon">&#x1F3E5;</div>
-          <div><div class="ct-label">GP Surgery</div><div class="ct-val">Contact your registered GP</div></div>
-        </div>
-        <div class="contact-tile">
-          <div class="ct-icon">&#x1F48A;</div>
-          <div><div class="ct-label">Community Pharmacist</div><div class="ct-val">Your local pharmacy team</div></div>
-        </div>
-        <div class="contact-tile">
-          <div class="ct-icon">&#x1F6A8;</div>
-          <div><div class="ct-label">Emergency</div><div class="ct-val">Call 999 or go to A&amp;E</div></div>
-        </div>
-        <div class="contact-tile">
-          <div class="ct-icon">&#x1F4DE;</div>
-          <div><div class="ct-label">NHS 111</div><div class="ct-val">Call 111 for urgent advice</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Medication Schedule Tab -->
-  <div class="tab-panel" id="panel-schedule">
+  <div class="tab-panel active" id="panel-schedule">
 
     <!-- First Dose Setter -->
     <div class="first-dose-card" id="first-dose-card">
