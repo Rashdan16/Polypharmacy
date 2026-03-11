@@ -1,8 +1,11 @@
 # Changelog
 
-## [2026-03-11] - Fix zoomed-out appearance
-- Increased base font size from 15px to 16px (browser default) in polyrisk.html and patient-portal.html
-- Files affected: `polyrisk.html`, `patient-portal.html`
+## [2026-03-11] - Bump font size to 20px + patient portal accessibility controls
+- Increased base font size to 20px across all three pages (index.html, polyrisk.html, patient-portal.html)
+- Added accessibility toolbar to patient portal header: dark mode (🌙), high contrast (◑), font decrease (A−), font increase (A+)
+- Preferences persist across sessions via localStorage (keys: pp_dark, pp_contrast, pp_fontsize)
+- Font size range clamped to 14–28px; dark mode and high contrast use CSS class overrides on body
+- Files affected: `index.html`, `polyrisk.html`, `patient-portal.html`
 
 ## [2026-03-11] - Auto-calculate Risk Score in Patient Portal
 - Patient portal now auto-calculates risk score and domain breakdown from the patient's own data (medications, conditions, age, eGFR) when no clinician-saved assessments exist

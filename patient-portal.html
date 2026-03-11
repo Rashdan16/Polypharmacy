@@ -19,7 +19,7 @@ const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABA
   --low:#007F3B;--moderate:#FF8C00;--high:#DA291C;--critical:#8C1A6A;
   --radius:12px;--radius-sm:8px;--shadow:0 2px 14px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);
 }
-html{font-size:18px}
+html{font-size:20px}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;
@@ -214,6 +214,44 @@ footer{
   text-align:center;padding:16px;font-size:.7rem;color:var(--text-muted);
   border-top:1px solid var(--border);background:var(--card);
 }
+
+/* ── Accessibility bar ── */
+.a11y-bar{display:flex;align-items:center;gap:6px}
+.a11y-btn{
+  background:rgba(255,255,255,.15);color:#fff;
+  border:1px solid rgba(255,255,255,.3);
+  padding:6px 11px;border-radius:8px;font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:background .2s,border-color .2s;line-height:1;
+  display:flex;align-items:center;justify-content:center;min-width:36px;
+}
+.a11y-btn:hover{background:rgba(255,255,255,.28)}
+.a11y-btn.active{background:rgba(255,255,255,.35);border-color:rgba(255,255,255,.7)}
+
+/* ── Dark mode ── */
+body.dark-mode{
+  --bg:#111827;--card:#1F2937;--text:#F3F4F6;--text-muted:#9CA3AF;
+  --border:#374151;--teal-pale:#0d2a2b;--teal-light:#1a3a3b;
+}
+body.dark-mode .header{background:linear-gradient(135deg,#002424 0%,#003838 60%,#004a4a 100%)}
+body.dark-mode .hero{background:linear-gradient(135deg,#002424 0%,#003838 100%)}
+body.dark-mode .hero-tab.active{background:var(--bg);color:#5eead4}
+body.dark-mode .score-card{background:linear-gradient(145deg,#002424,#003838)}
+body.dark-mode .skel{background:linear-gradient(90deg,#374151 25%,#4B5563 50%,#374151 75%);background-size:200% 100%}
+body.dark-mode footer{background:var(--card);color:var(--text-muted)}
+
+/* ── High contrast ── */
+body.high-contrast{
+  --bg:#000;--card:#000;--text:#fff;--text-muted:#ccc;
+  --border:#fff;--teal-pale:#001a1a;--teal-light:#003333;
+  --teal:#00ffff;--teal-dark:#00cccc;--teal-mid:#00eeee;
+}
+body.high-contrast .header{background:#000;border-bottom:2px solid #fff}
+body.high-contrast .hero{background:#000;border-bottom:2px solid #fff}
+body.high-contrast .hero-tab{color:#ccc}
+body.high-contrast .hero-tab.active{background:#000;color:#00ffff;border-bottom-color:#00ffff}
+body.high-contrast .score-card{background:#000;border:2px solid #fff}
+body.high-contrast .a11y-btn{border-color:#fff;color:#fff}
+body.high-contrast .btn-logout{border-color:#fff}
 </style>
 </head>
 <body>
@@ -228,6 +266,12 @@ footer{
     </div>
   </div>
   <div class="header-right">
+    <div class="a11y-bar">
+      <button class="a11y-btn" id="btn-dark" onclick="toggleDark()" title="Dark mode">🌙</button>
+      <button class="a11y-btn" id="btn-contrast" onclick="toggleContrast()" title="High contrast">◑</button>
+      <button class="a11y-btn" onclick="adjustFont(-1)" title="Decrease text size">A−</button>
+      <button class="a11y-btn" onclick="adjustFont(1)" title="Increase text size">A+</button>
+    </div>
     <span class="header-user" id="header-user">Loading...</span>
     <button class="btn-logout" onclick="logout()">Sign Out</button>
   </div>
@@ -611,6 +655,31 @@ async function init() {
     }).join('');
   }
 }
+
+// ── Accessibility ──
+function toggleDark() {
+  const on = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('pp_dark', on ? '1' : '');
+  document.getElementById('btn-dark').classList.toggle('active', on);
+}
+function toggleContrast() {
+  const on = document.body.classList.toggle('high-contrast');
+  localStorage.setItem('pp_contrast', on ? '1' : '');
+  document.getElementById('btn-contrast').classList.toggle('active', on);
+}
+function adjustFont(delta) {
+  const current = parseFloat(document.documentElement.style.fontSize) ||
+                  parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const next = Math.min(28, Math.max(14, current + delta));
+  document.documentElement.style.fontSize = next + 'px';
+  localStorage.setItem('pp_fontsize', next);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  if (localStorage.getItem('pp_dark')) { document.body.classList.add('dark-mode'); document.getElementById('btn-dark').classList.add('active'); }
+  if (localStorage.getItem('pp_contrast')) { document.body.classList.add('high-contrast'); document.getElementById('btn-contrast').classList.add('active'); }
+  const fs = localStorage.getItem('pp_fontsize');
+  if (fs) document.documentElement.style.fontSize = fs + 'px';
+});
 
 init();
 </script>
