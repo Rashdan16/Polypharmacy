@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>if(!sessionStorage.getItem('patient_auth'))window.location.replace('./index.html');</script>
+<title>My Health Record &mdash; PharmAware</title>
+<script src="./config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#006466;--teal-dark:#004d4f;--teal-mid:#00888A;--teal-light:#E0F4F4;--teal-pale:#F0FAFA;
+  --nhs-green:#007F3B;--nhs-red:#DA291C;--nhs-amber:#FF8C00;--nhs-purple:#8C1A6A;
+  --bg:#F0F4F8;--card:#fff;--text:#1A2332;--text-muted:#637381;--border:#E3E8EF;
+  --low:#007F3B;--moderate:#FF8C00;--high:#DA291C;--critical:#8C1A6A;
+  --radius:12px;--radius-sm:8px;--shadow:0 2px 14px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+html{font-size:15px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;
+  display:flex;flex-direction:column;
+}
+
+/* ── Header ── */
+.header{
+  background:linear-gradient(135deg,var(--teal-dark) 0%,var(--teal) 60%,var(--teal-mid) 100%);
+  padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:62px;
+  position:sticky;top:0;z-index:50;
+}
+.header-brand{display:flex;align-items:center;gap:10px}
+.header-brand .brand-icon{
+  width:36px;height:36px;background:rgba(255,255,255,.18);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+}
+.header-brand h1{color:#fff;font-size:1rem;font-weight:700;letter-spacing:-.2px}
+.header-brand p{color:rgba(255,255,255,.7);font-size:.72rem}
+.header-right{display:flex;align-items:center;gap:12px}
+.header-user{
+  color:rgba(255,255,255,.9);font-size:.82rem;font-weight:500;
+  background:rgba(255,255,255,.12);padding:5px 12px;border-radius:20px;
+}
+.btn-logout{
+  background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);
+  padding:7px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;
+  transition:background .2s;
+}
+.btn-logout:hover{background:rgba(255,255,255,.28)}
+
+/* ── Welcome Hero ── */
+.hero{
+  background:linear-gradient(135deg,var(--teal-dark) 0%,var(--teal) 100%);
+  padding:36px 28px 0;
+}
+.hero-inner{max-width:1000px;margin:0 auto}
+.hero-greeting{color:rgba(255,255,255,.75);font-size:.85rem;margin-bottom:4px}
+.hero-name{color:#fff;font-size:1.7rem;font-weight:800;margin-bottom:6px;letter-spacing:-.5px}
+.hero-sub{color:rgba(255,255,255,.7);font-size:.85rem;margin-bottom:28px}
+.hero-tabs{
+  display:flex;gap:0;border-bottom:none;margin-top:4px;
+}
+.hero-tab{
+  padding:11px 22px;font-size:.85rem;font-weight:600;color:rgba(255,255,255,.65);
+  background:none;border:none;cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+  transition:background .2s,color .2s;border-bottom:3px solid transparent;
+}
+.hero-tab.active{
+  background:var(--bg);color:var(--teal-dark);border-bottom-color:var(--bg);
+  box-shadow:0 -2px 8px rgba(0,0,0,.08);
+}
+.hero-tab:not(.active):hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* ── Page ── */
+.page{max-width:1000px;margin:0 auto;padding:22px 18px 40px;flex:1}
+
+/* ── Tab panels ── */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── Cards ── */
+.card{
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  border:1px solid var(--border);padding:20px;margin-bottom:18px;
+}
+.card-title{
+  font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--teal);
+  letter-spacing:.5px;padding-bottom:10px;margin-bottom:14px;
+  border-bottom:2px solid var(--teal-light);display:flex;align-items:center;gap:7px;
+}
+
+/* ── Overview grid ── */
+.overview-grid{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+@media(max-width:720px){.overview-grid{grid-template-columns:1fr}}
+
+/* ── Latest Score Card ── */
+.score-card{
+  background:linear-gradient(145deg,var(--teal-dark),var(--teal));
+  border-radius:var(--radius);padding:24px;color:#fff;text-align:center;
+  box-shadow:var(--shadow-lg);
+}
+.score-card .sc-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;opacity:.8;margin-bottom:14px}
+.score-gauge{
+  width:130px;height:130px;border-radius:50%;margin:0 auto 16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.12);border:4px solid rgba(255,255,255,.25);
+  position:relative;
+}
+.score-gauge .sg-num{font-size:2.6rem;font-weight:900;line-height:1}
+.score-gauge .sg-den{font-size:.78rem;opacity:.7;margin-top:2px}
+.score-band{
+  display:inline-block;padding:4px 16px;border-radius:20px;
+  font-size:.78rem;font-weight:700;letter-spacing:.3px;
+  background:rgba(255,255,255,.2);margin-bottom:14px;
+}
+.score-date{font-size:.72rem;opacity:.65;margin-top:4px}
+.score-meta-row{display:flex;justify-content:center;gap:16px;margin-top:12px;font-size:.75rem;opacity:.8}
+.score-meta-row span{display:flex;align-items:center;gap:4px}
+
+/* ── Domain grid ── */
+.domain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:600px){.domain-grid{grid-template-columns:repeat(2,1fr)}}
+.domain-tile{
+  border-radius:var(--radius-sm);padding:12px 14px;
+  border-left:4px solid;background:var(--card);
+}
+.domain-tile .dt-name{font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px}
+.domain-tile .dt-score{font-size:1.6rem;font-weight:900;line-height:1;margin:4px 0 2px}
+.domain-tile .dt-band{font-size:.68rem;font-weight:700;text-transform:uppercase}
+.domain-tile .dt-bar{height:4px;background:#eee;border-radius:2px;margin-top:8px;overflow:hidden}
+.domain-tile .dt-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+/* ── Profile ── */
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px}
+.pi{padding:12px 14px;background:var(--teal-pale);border-radius:var(--radius-sm);border:1px solid var(--teal-light)}
+.pi .pi-l{font-size:.65rem;text-transform:uppercase;color:var(--teal);font-weight:700;letter-spacing:.4px;margin-bottom:4px}
+.pi .pi-v{font-size:.95rem;font-weight:700;color:var(--text)}
+
+/* ── Conditions ── */
+.tag-wrap{display:flex;flex-wrap:wrap;gap:7px}
+.tag-chip{
+  background:var(--teal-light);color:var(--teal-dark);
+  padding:5px 13px;border-radius:20px;font-size:.75rem;font-weight:600;
+}
+
+/* ── Medications ── */
+.med-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.med-card{
+  background:var(--teal-pale);border:1px solid var(--teal-light);border-radius:var(--radius-sm);
+  padding:11px 14px;display:flex;align-items:flex-start;gap:10px;
+}
+.med-card .mc-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+.med-card .mc-name{font-size:.88rem;font-weight:700;color:var(--text);line-height:1.3}
+.med-card .mc-dose{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+
+/* ── History timeline ── */
+.timeline{position:relative;padding-left:24px}
+.timeline::before{
+  content:'';position:absolute;left:7px;top:0;bottom:0;
+  width:2px;background:var(--border);border-radius:2px;
+}
+.tl-item{position:relative;margin-bottom:18px}
+.tl-dot{
+  position:absolute;left:-24px;top:12px;
+  width:14px;height:14px;border-radius:50%;border:2px solid var(--card);
+  box-shadow:0 0 0 2px;
+}
+.tl-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.tl-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
+.tl-date{font-size:.82rem;font-weight:700;color:var(--text)}
+.tl-clinician{font-size:.72rem;color:var(--text-muted);margin-top:2px}
+.tl-score-wrap{text-align:right}
+.tl-score{font-size:1.4rem;font-weight:900}
+.tl-band{display:inline-block;padding:2px 10px;border-radius:10px;font-size:.68rem;font-weight:700;color:#fff;margin-top:3px}
+.tl-domains{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.tl-dp{font-size:.7rem;padding:2px 8px;border-radius:8px;font-weight:600}
+
+/* ── Advice ── */
+.advice-banner{
+  background:linear-gradient(135deg,var(--teal-pale),#fff);
+  border:1px solid var(--teal-light);border-left:4px solid var(--teal);
+  border-radius:var(--radius);padding:18px 20px;
+}
+.advice-banner h3{color:var(--teal-dark);font-size:.92rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.advice-banner p{font-size:.83rem;color:var(--text-muted);line-height:1.7}
+.advice-banner p + p{margin-top:8px}
+
+/* ── Contact banner ── */
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.contact-tile{
+  background:var(--teal-pale);border:1px solid var(--teal-light);border-radius:var(--radius-sm);
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+}
+.contact-tile .ct-icon{font-size:1.6rem;flex-shrink:0}
+.contact-tile .ct-label{font-size:.72rem;text-transform:uppercase;color:var(--teal);font-weight:700;letter-spacing:.3px}
+.contact-tile .ct-val{font-size:.88rem;font-weight:600;color:var(--text);margin-top:2px}
+
+/* ── Empty / loading ── */
+.empty{text-align:center;padding:44px 20px;color:var(--text-muted)}
+.empty .ei{font-size:2.8rem;margin-bottom:10px}
+.empty p{font-size:.85rem}
+
+/* ── Skeleton loader ── */
+.skel{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:skel 1.2s infinite;border-radius:6px;height:18px;margin-bottom:8px}
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+footer{
+  text-align:center;padding:16px;font-size:.7rem;color:var(--text-muted);
+  border-top:1px solid var(--border);background:var(--card);
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-brand">
+    <div class="brand-icon">&#x1F9D1;</div>
+    <div>
+      <h1>Patient Portal</h1>
+      <p>PharmAware &mdash; My Health Record</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="header-user" id="header-user">Loading...</span>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</div>
+
+<!-- Hero + Tabs -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-greeting">Welcome back,</div>
+    <div class="hero-name" id="hero-name"><div class="skel" style="width:200px;height:28px;background:rgba(255,255,255,.15)"></div></div>
+    <div class="hero-sub" id="hero-sub">Loading your health record&hellip;</div>
+    <div class="hero-tabs">
+      <button class="hero-tab active" onclick="switchTab('overview',this)">Overview</button>
+      <button class="hero-tab" onclick="switchTab('medications',this)">Medications</button>
+      <button class="hero-tab" onclick="switchTab('history',this)">Assessment History</button>
+      <button class="hero-tab" onclick="switchTab('profile',this)">My Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Page -->
+<div class="page">
+
+  <!-- Overview Tab -->
+  <div class="tab-panel active" id="panel-overview">
+
+    <div class="overview-grid">
+
+      <!-- Latest score -->
+      <div class="score-card" id="score-card">
+        <div class="sc-label">&#x26A1; Latest Risk Score</div>
+        <div class="score-gauge" id="score-gauge">
+          <span class="sg-num" id="sg-num">—</span>
+          <span class="sg-den">/ 10</span>
+        </div>
+        <div class="score-band" id="score-band">No Assessment Yet</div>
+        <div class="score-date" id="score-date"></div>
+        <div class="score-meta-row" id="score-meta"></div>
+      </div>
+
+      <!-- Domain tiles -->
+      <div>
+        <div class="card-title">&#x1F4CA; Risk Domain Breakdown</div>
+        <div class="domain-grid" id="domain-grid">
+          <div class="empty"><div class="ei">&#x1F4CA;</div><p>No assessment data yet</p></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Advice -->
+    <div class="advice-banner">
+      <h3>&#x2139;&#xFE0F; Understanding your risk score</h3>
+      <p>Your risk score is calculated by your clinical team across six areas: <strong>Fall Risk, Bleeding Risk, Anticholinergic Burden (ACB), QT Prolongation Risk, Frailty, and Renal Risk</strong>. A higher score indicates a greater need for a medication review.</p>
+      <p><strong>This score does not mean you are in danger.</strong> It helps your pharmacist and GP identify which medications may need to be reviewed together. Do not stop or change any medication without speaking to your clinical team first.</p>
+    </div>
+
+    <!-- Contacts -->
+    <div class="card">
+      <div class="card-title">&#x1F4DE; Who to Contact</div>
+      <div class="contact-grid">
+        <div class="contact-tile">
+          <div class="ct-icon">&#x1F3E5;</div>
+          <div><div class="ct-label">GP Surgery</div><div class="ct-val">Contact your registered GP</div></div>
+        </div>
+        <div class="contact-tile">
+          <div class="ct-icon">&#x1F48A;</div>
+          <div><div class="ct-label">Community Pharmacist</div><div class="ct-val">Your local pharmacy team</div></div>
+        </div>
+        <div class="contact-tile">
+          <div class="ct-icon">&#x1F6A8;</div>
+          <div><div class="ct-label">Emergency</div><div class="ct-val">Call 999 or go to A&amp;E</div></div>
+        </div>
+        <div class="contact-tile">
+          <div class="ct-icon">&#x1F4DE;</div>
+          <div><div class="ct-label">NHS 111</div><div class="ct-val">Call 111 for urgent advice</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Medications Tab -->
+  <div class="tab-panel" id="panel-medications">
+    <div class="card">
+      <div class="card-title">&#x1F48A; Current Repeat Medications</div>
+      <div id="med-grid" class="med-grid">
+        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+    <div class="card" id="conditions-card" style="display:none">
+      <div class="card-title">&#x1F3E5; Long-Term Conditions</div>
+      <div class="tag-wrap" id="conditions-wrap"></div>
+    </div>
+    <div class="advice-banner">
+      <h3>&#x1F4CB; About your medication list</h3>
+      <p>This list shows the repeat medications held on your NHS record at your last review. It may not include one-off prescriptions or recent changes. Always check with your GP or pharmacist if you are unsure about your current medications.</p>
+    </div>
+  </div>
+
+  <!-- History Tab -->
+  <div class="tab-panel" id="panel-history">
+    <div class="card">
+      <div class="card-title">&#x1F4C5; Assessment Timeline</div>
+      <div class="timeline" id="timeline">
+        <div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Tab -->
+  <div class="tab-panel" id="panel-profile">
+    <div class="card">
+      <div class="card-title">&#x1F464; My Details</div>
+      <div class="profile-grid" id="profile-grid">
+        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+    <div class="advice-banner">
+      <h3>&#x270F;&#xFE0F; Is your information incorrect?</h3>
+      <p>If any of your personal details are wrong, please contact your GP surgery to update your NHS record. Changes made there will be reflected here after your next medication review.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>PolyRisk &mdash; For demonstration purposes only. Not for clinical use. PharmAware is not liable for any damages, adverse outcomes, or loss of life arising from the use of this tool.</footer>
+
+<script>
+const DOMAINS = ['fall','bleed','acb','qt','frailty','renal'];
+const DOMAIN_LABELS = {fall:'Fall Risk',bleed:'Bleed Risk',acb:'ACB',qt:'QT Risk',frailty:'Frailty',renal:'Renal Risk'};
+const DOMAIN_EMOJI  = {fall:'🦴',bleed:'🩸',acb:'🧠',qt:'🫀',frailty:'🧓',renal:'🫘'};
+
+// ── Risk Engine (mirrors polyrisk.html) ──
+const DRUG_DB = {
+  "alfacalcidol":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"amlodipine":{fall:2,bleed:0,acb:0,qt:0,frailty:0,renal:0},
+  "apixaban":{fall:1,bleed:3,acb:0,qt:0,frailty:1,renal:2},"aspirin":{fall:0,bleed:2,acb:0,qt:0,frailty:0,renal:2},
+  "atorvastatin":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"beclometasone":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},
+  "bisoprolol":{fall:1,bleed:0,acb:0,qt:0,frailty:0,renal:1},"carbocisteine":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},
+  "citalopram":{fall:2,bleed:1,acb:1,qt:3,frailty:1,renal:0},"clopidogrel":{fall:0,bleed:2,acb:0,qt:0,frailty:0,renal:1},
+  "digoxin":{fall:1,bleed:0,acb:0,qt:2,frailty:1,renal:3},"doxazosin":{fall:3,bleed:0,acb:0,qt:0,frailty:1,renal:0},
+  "empagliflozin":{fall:1,bleed:0,acb:0,qt:0,frailty:1,renal:2},"ezetimibe":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},
+  "ferrous sulfate":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"furosemide":{fall:2,bleed:0,acb:0,qt:1,frailty:1,renal:2},
+  "gliclazide":{fall:1,bleed:0,acb:0,qt:0,frailty:1,renal:2},"glyceryl trinitrate":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:0},
+  "indapamide":{fall:2,bleed:0,acb:0,qt:1,frailty:1,renal:2},"insulin aspart":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:1},
+  "insulin glargine":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:1},"isosorbide mononitrate":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:0},
+  "losartan":{fall:1,bleed:0,acb:0,qt:0,frailty:0,renal:2},"metformin":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:3},
+  "mirtazapine":{fall:2,bleed:0,acb:1,qt:1,frailty:1,renal:0},"montelukast":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},
+  "prednisolone":{fall:1,bleed:1,acb:0,qt:0,frailty:2,renal:0},"propranolol":{fall:1,bleed:0,acb:0,qt:0,frailty:0,renal:0},
+  "ramipril":{fall:1,bleed:0,acb:0,qt:0,frailty:0,renal:2},"rivaroxaban":{fall:1,bleed:3,acb:0,qt:0,frailty:1,renal:2},
+  "sacubitril/valsartan":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:2},"salbutamol":{fall:0,bleed:0,acb:0,qt:1,frailty:0,renal:0},
+  "seretide":{fall:0,bleed:0,acb:0,qt:1,frailty:0,renal:0},"sertraline":{fall:2,bleed:1,acb:1,qt:1,frailty:1,renal:0},
+  "simvastatin":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"sitagliptin":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:1},
+  "sodium bicarbonate":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"spironolactone":{fall:1,bleed:0,acb:0,qt:1,frailty:0,renal:2},
+  "ticagrelor":{fall:0,bleed:2,acb:0,qt:0,frailty:0,renal:1},"tiotropium":{fall:0,bleed:0,acb:1,qt:0,frailty:0,renal:0},
+  "warfarin":{fall:1,bleed:3,acb:0,qt:0,frailty:1,renal:1}
+};
+const HIST_MOD = {
+  fall:{FALLS_HX:3,OSTEOPOROSIS:2,STROKE:2,PARKINSON:2,DEMENTIA:1,FRAILTY:2},
+  bleed:{BLEEDING_HX:3,PEPTIC_ULCER:2,THROMBOCYTOPENIA:2,CKD3:1,CKD4:2},
+  acb:{DEMENTIA:2,GLAUCOMA:1},
+  qt:{QT_PROLONGED_HX:3,AF:1,HF:1},
+  frailty:{FRAILTY:3,DEMENTIA:2,FALLS_HX:1},
+  renal:{CKD3:2,CKD4:4,CKD5:6,DIABETES:1,T2DM:1,HF:1,HYPERTENSION:1}
+};
+const DOMAIN_RAW_MAX = {fall:15,bleed:12,acb:15,qt:12,frailty:15,renal:15};
+
+function calcRiskFromPatient(p) {
+  const medsRaw = (p.current_repeat_medications || '').split(';').map(s=>s.trim()).filter(Boolean);
+  const tags = (p.long_term_conditions || '').split(';').map(s=>s.trim().toUpperCase()).filter(Boolean);
+  const age = p.date_of_birth ? (new Date().getFullYear() - new Date(p.date_of_birth).getFullYear()) : 75;
+  const egfr = parseFloat(p.latest_egfr) || 90;
+
+  // Drug scores
+  const rawDrug = {fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0};
+  medsRaw.forEach(ms => {
+    let name = ms.replace(/\b(tablets?|capsules?|inhaler|solution|spray|liquid)\b/gi,'')
+                 .replace(/\d+(\.\d+)?\s*(mg|micrograms|units\/ml|g|nanogram)?/gi,'').trim().toLowerCase();
+    const db = DRUG_DB[name] || Object.values(DRUG_DB)[Object.keys(DRUG_DB).findIndex(k => name.includes(k))] || null;
+    if (db) DOMAINS.forEach(d => { rawDrug[d] += db[d]; });
+  });
+
+  // History modifiers
+  const histRaw = {fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0};
+  DOMAINS.forEach(d => { tags.forEach(tag => { if (HIST_MOD[d][tag]) histRaw[d] += HIST_MOD[d][tag]; }); });
+
+  // Age modifier
+  let ageMod = age >= 85 ? 3 : age >= 75 ? 2 : age >= 65 ? 1 : 0;
+  rawDrug.fall += ageMod; rawDrug.frailty += ageMod;
+
+  // eGFR modifier
+  let egfrMod = egfr >= 90 ? 0 : egfr >= 60 ? 1 : egfr >= 45 ? 2 : egfr >= 30 ? 3 : egfr >= 15 ? 5 : 7;
+  rawDrug.renal += egfrMod;
+
+  // Polypharmacy modifier
+  let polyMod = medsRaw.length >= 10 ? 3 : medsRaw.length >= 8 ? 2 : medsRaw.length >= 5 ? 1 : 0;
+  DOMAINS.forEach(d => { rawDrug[d] += polyMod * 0.5; });
+
+  // Final domain scores
+  const domainScores = {};
+  DOMAINS.forEach(d => {
+    domainScores[d] = parseFloat(Math.min((rawDrug[d] + histRaw[d]) / DOMAIN_RAW_MAX[d] * 10, 10).toFixed(2));
+  });
+
+  const overall = parseFloat((DOMAINS.reduce((s,d) => s + domainScores[d], 0) / DOMAINS.length).toFixed(2));
+  const riskBand = bandOf(overall).label;
+
+  return { overall_score: overall, risk_band: riskBand, domain_scores: domainScores, medications: medsRaw };
+}
+
+function bandOf(score) {
+  if (score < 3) return {label:'LOW',    color:'#007F3B', bg:'rgba(0,127,59,.1)'};
+  if (score < 6) return {label:'MODERATE',color:'#FF8C00',bg:'rgba(255,140,0,.1)'};
+  if (score < 8) return {label:'HIGH',   color:'#DA291C', bg:'rgba(218,41,28,.1)'};
+  return           {label:'CRITICAL',   color:'#8C1A6A', bg:'rgba(140,26,106,.1)'};
+}
+
+function calcAge(dob) {
+  if (!dob) return '—';
+  return new Date().getFullYear() - new Date(dob).getFullYear();
+}
+
+function fmt(d, opts) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', opts || {day:'2-digit',month:'long',year:'numeric'});
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.hero-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+function logout() {
+  sessionStorage.removeItem('patient_auth');
+  window.location.replace('./index.html');
+}
+
+function parseDrugString(s) {
+  const rx = /^([a-zA-Z\s\-\/]+)\s*(\d+(?:\.\d+)?)\s*(mg|micrograms|units\/ml|g|nanogram)?/i;
+  const m = s.match(rx);
+  if (m) return {name: m[1].trim(), dose: m[2] + ' ' + (m[3] || 'mg')};
+  return {name: s.replace(/\b(tablets?|capsules?|inhaler|solution)\b/gi,'').trim(), dose:''};
+}
+
+async function init() {
+  const raw = sessionStorage.getItem('patient_auth');
+  if (!raw) { window.location.replace('./index.html'); return; }
+
+  // Patient data was loaded from Supabase at login and stored in sessionStorage
+  const p = JSON.parse(raw);
+
+  // Fetch assessment history from Supabase (non-blocking, with timeout)
+  let assessments = null;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const { data } = await supabase
+      .from('assessments')
+      .select('*')
+      .eq('patient_id', p.patient_id)
+      .order('assessed_at', { ascending: false })
+      .abortSignal(controller.signal);
+    clearTimeout(timeout);
+    assessments = data;
+  } catch (_) { /* Supabase unavailable or timed out — show page without assessments */ }
+
+  // Header & hero
+  const name = p.name || ('Patient ' + p.patient_id);
+  document.getElementById('header-user').textContent = name;
+  document.getElementById('hero-name').textContent = name;
+  document.getElementById('hero-sub').textContent =
+    'Patient ID: ' + p.patient_id + '  ·  Last review: ' + fmt(p.last_review_date);
+
+  // Profile tab
+  document.getElementById('profile-grid').innerHTML = [
+    {l:'Patient ID',     v: p.patient_id},
+    {l:'Full Name',      v: p.name || '—'},
+    {l:'Date of Birth',  v: fmt(p.date_of_birth)},
+    {l:'Age',            v: calcAge(p.date_of_birth) + ' years'},
+    {l:'Sex',            v: p.sex === 'M' ? 'Male' : p.sex === 'F' ? 'Female' : '—'},
+    {l:'eGFR',           v: p.latest_egfr ? p.latest_egfr + ' mL/min/1.73m²' : '—'},
+    {l:'BMI',            v: p.bmi || '—'},
+    {l:'Smoking Status', v: p.smoking_status || '—'},
+    {l:'Allergies',      v: p.allergies || 'None recorded'},
+    {l:'Last Review',    v: fmt(p.last_review_date)},
+  ].map(i => '<div class="pi"><div class="pi-l">' + i.l + '</div><div class="pi-v">' + i.v + '</div></div>').join('');
+
+  // Conditions
+  const conds = (p.long_term_conditions || '').split(';').map(s=>s.trim()).filter(Boolean);
+  if (conds.length) {
+    document.getElementById('conditions-wrap').innerHTML = conds.map(c=>'<span class="tag-chip">'+c+'</span>').join('');
+    document.getElementById('conditions-card').style.display='';
+  }
+
+  // Medications
+  const medsRaw = (p.current_repeat_medications || '').split(';').map(s=>s.trim()).filter(Boolean);
+  if (medsRaw.length) {
+    document.getElementById('med-grid').innerHTML = medsRaw.map(m => {
+      const d = parseDrugString(m);
+      return '<div class="med-card">' +
+        '<div class="mc-icon">&#x1F48A;</div>' +
+        '<div><div class="mc-name">' + d.name + '</div>' +
+        (d.dose ? '<div class="mc-dose">' + d.dose + '</div>' : '') +
+        '</div></div>';
+    }).join('');
+  } else {
+    document.getElementById('med-grid').innerHTML = '<div class="empty"><div class="ei">&#x1F48A;</div><p>No medications on record</p></div>';
+  }
+
+  // Auto-calculate risk from patient data if no saved assessments
+  const autoCalc = calcRiskFromPatient(p);
+  const effectiveAssessments = (assessments && assessments.length > 0) ? assessments : [autoCalc];
+  const isAutoCalc = !(assessments && assessments.length > 0);
+
+  // Latest score
+  if (true) {
+    const latest = effectiveAssessments[0];
+    const band = bandOf(latest.overall_score);
+    document.getElementById('sg-num').textContent = latest.overall_score;
+    document.getElementById('score-gauge').style.borderColor = band.color + '80';
+    document.getElementById('score-band').textContent = band.label;
+    document.getElementById('score-band').style.background = band.color + '33';
+    if (isAutoCalc) {
+      document.getElementById('score-date').textContent = 'Auto-calculated from your current medications';
+    } else {
+      document.getElementById('score-date').textContent = 'As of ' + fmt(latest.assessed_at, {day:'2-digit',month:'short',year:'numeric'});
+    }
+    const medCount = latest.medications?.length || medsRaw.length || '—';
+    document.getElementById('score-meta').innerHTML =
+      '<span>&#x1F48A; ' + medCount + ' meds</span>' +
+      '<span>&#x1F9D1;&#x200D;&#x2695;&#xFE0F; ' + (isAutoCalc ? 'Auto-calculated' : (latest.clinician_email?.split('@')[0] || 'Clinical team')) + '</span>';
+
+    // Domain tiles
+    if (latest.domain_scores) {
+      document.getElementById('domain-grid').innerHTML = DOMAINS.map(d => {
+        const score = latest.domain_scores[d] ?? 0;
+        const b = bandOf(score);
+        return '<div class="domain-tile" style="border-left-color:' + b.color + ';background:' + b.bg + '">' +
+          '<div class="dt-name">' + DOMAIN_EMOJI[d] + ' ' + DOMAIN_LABELS[d] + '</div>' +
+          '<div class="dt-score" style="color:' + b.color + '">' + score.toFixed(1) + '</div>' +
+          '<div class="dt-band" style="color:' + b.color + '">' + b.label + '</div>' +
+          '<div class="dt-bar"><div class="dt-fill" style="width:' + (score*10) + '%;background:' + b.color + '"></div></div>' +
+        '</div>';
+      }).join('');
+    }
+  }
+
+  // Timeline
+  const tl = document.getElementById('timeline');
+  if (!assessments || !assessments.length) {
+    tl.innerHTML = '<div class="empty"><div class="ei">&#x1F4CB;</div><p>No clinician assessments on record yet.<br>The score above is auto-calculated from your current medications.</p></div>';
+  } else {
+    tl.innerHTML = assessments.map((a, i) => {
+      const band = bandOf(a.overall_score);
+      const dateStr = fmt(a.assessed_at, {day:'2-digit',month:'short',year:'numeric'});
+      const timeStr = new Date(a.assessed_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      const domains = a.domain_scores ? DOMAINS.map(d => {
+        const v = a.domain_scores[d] ?? 0;
+        const b = bandOf(v);
+        return '<span class="tl-dp" style="background:' + b.bg + ';color:' + b.color + '">' +
+          DOMAIN_LABELS[d] + ' ' + v.toFixed(1) + '</span>';
+      }).join('') : '';
+      return '<div class="tl-item">' +
+        '<div class="tl-dot" style="background:' + band.color + ';box-shadow-color:' + band.color + '"></div>' +
+        '<div class="tl-card">' +
+          '<div class="tl-header">' +
+            '<div>' +
+              '<div class="tl-date">&#x1F4C5; ' + dateStr + ' &middot; ' + timeStr + (i===0?' <span style="background:#007F3B;color:#fff;font-size:.65rem;padding:1px 7px;border-radius:10px;font-weight:700;margin-left:6px">LATEST</span>':'') + '</div>' +
+              '<div class="tl-clinician">Reviewed by: ' + (a.clinician_email || 'Your clinical team') + '</div>' +
+            '</div>' +
+            '<div class="tl-score-wrap">' +
+              '<div class="tl-score" style="color:' + band.color + '">' + a.overall_score + '<span style="font-size:.85rem;font-weight:400;color:var(--text-muted)">/10</span></div>' +
+              '<div><span class="tl-band" style="background:' + band.color + '">' + (a.risk_band || band.label) + '</span></div>' +
+            '</div>' +
+          '</div>' +
+          (domains ? '<div class="tl-domains">' + domains + '</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+init();
+</script>
+</body>
+</html>

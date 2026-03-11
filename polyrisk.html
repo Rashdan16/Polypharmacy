@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>if(!sessionStorage.getItem('polyrisk_auth'))window.location.replace('./index.html');</script>
 <title>PolyRisk — NHS Polypharmacy Risk Assessment</title>
 <script src="./config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+if (!sessionStorage.getItem('clinician_auth')) window.location.replace('./index.html');
+</script>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -236,6 +240,63 @@ body.high-contrast .band-badge{border:1px solid #fff}
 .apikey-row input:focus{border-color:var(--nhs-blue)}
 .apikey-row button{padding:7px 12px;background:var(--nhs-light);color:var(--nhs-blue);border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap}
 .apikey-row button:hover{background:#c4ddf0}
+
+/* Save / History / New Patient buttons */
+.btn-save-assessment{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 18px;
+  background:var(--nhs-green);color:#fff;border:none;border-radius:8px;
+  font-size:.88rem;font-weight:700;cursor:pointer;margin-top:12px;transition:background .2s;
+}
+.btn-save-assessment:hover{background:#006432}
+.btn-save-assessment:disabled{opacity:.5;cursor:default}
+.save-confirm{color:var(--nhs-green);font-size:.82rem;font-weight:600;margin-left:10px;display:inline-block}
+
+.btn-history{
+  display:inline-flex;align-items:center;gap:5px;padding:5px 14px;
+  background:var(--nhs-light);color:var(--nhs-blue);border:none;border-radius:6px;
+  font-size:.78rem;font-weight:600;cursor:pointer;transition:background .2s;float:right;
+}
+.btn-history:hover{background:#c4ddf0}
+
+.btn-new-patient{
+  display:inline-flex;align-items:center;gap:5px;padding:6px 14px;
+  background:var(--nhs-green);color:#fff;border:none;border-radius:7px;
+  font-size:.78rem;font-weight:700;cursor:pointer;transition:background .2s;float:right;
+}
+.btn-new-patient:hover{background:#006432}
+.btn-save-patient{
+  display:inline-flex;align-items:center;gap:5px;padding:8px 18px;
+  background:var(--nhs-blue);color:#fff;border:none;border-radius:8px;
+  font-size:.88rem;font-weight:700;cursor:pointer;margin-top:10px;transition:background .2s;width:100%;justify-content:center;
+}
+.btn-save-patient:hover{background:var(--nhs-dark)}
+
+/* History modal */
+.history-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;
+  align-items:center;justify-content:center;padding:20px;
+}
+.history-modal{
+  background:var(--card);border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,.2);
+  max-width:600px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;
+}
+.history-modal h3{font-size:1rem;margin-bottom:14px;color:var(--nhs-blue)}
+.history-item{
+  padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;
+  cursor:pointer;transition:background .15s;display:flex;justify-content:space-between;align-items:center;
+}
+.history-item:hover{background:var(--nhs-light)}
+.history-item .hi-date{font-size:.82rem;font-weight:600}
+.history-item .hi-clinician{font-size:.72rem;color:var(--text-muted)}
+.history-item .hi-score{font-size:1.1rem;font-weight:800}
+.history-close{
+  float:right;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-muted);
+}
+.history-close:hover{color:var(--text)}
+.history-empty{color:var(--text-muted);font-size:.85rem;text-align:center;padding:20px}
+body.dark .history-modal{background:var(--card);border:1px solid var(--border)}
+body.dark .history-item{border-color:var(--border)}
+body.dark .history-item:hover{background:rgba(0,94,184,.2)}
 </style>
 </head>
 <body>
@@ -307,7 +368,7 @@ body.high-contrast .band-badge{border:1px solid #fff}
 
     <!-- Card 2: Patient Details -->
     <div class="card">
-      <div class="card-title">&#x1F464; Patient Details</div>
+      <div class="card-title">&#x1F464; Patient Details <button class="btn-new-patient" onclick="enterCreateMode()">&#xFF0B; New Patient</button></div>
       <div class="form-grid">
         <div class="form-group">
           <label>NHS Number</label>
@@ -341,6 +402,7 @@ body.high-contrast .band-badge{border:1px solid #fff}
         </div>
         <div class="tag-hint">AF &middot; HF &middot; CKD3 &middot; CKD4 &middot; T2DM &middot; FALLS_HX &middot; FRAILTY &middot; DEMENTIA &middot; DEPRESSION</div>
       </div>
+      <button class="btn-save-patient" id="btn-save-patient" style="display:none" onclick="savePatient()">&#x1F4BE; Save Patient to Database</button>
     </div>
 
     <!-- Card 3: Current Medications -->
@@ -407,6 +469,14 @@ body.high-contrast .band-badge{border:1px solid #fff}
 /* ===================================================================
    PolyRisk — NHS Polypharmacy Risk Assessment Tool
    =================================================================== */
+
+// ── Audit Log ──
+async function auditLog(action, detail) {
+  try {
+    const userEmail = sessionStorage.getItem('clinician_auth') || null;
+    await supabase.from('audit_log').insert({ user_email: userEmail, action, detail });
+  } catch (e) { console.warn('auditLog error:', e); }
+}
 
 // ── Drug Database ──
 const DRUG_DB = {
@@ -506,16 +576,40 @@ function generateMockName(id, sex) {
   return first + ' ' + lastNames[(n * 3) % 10];
 }
 
-// ── CSV Loader ──
+// ── Patient Loader (Supabase, CSV fallback) ──
 async function loadPatients() {
   try {
-    const res = await fetch('./patients.csv');
-    if (!res.ok) throw new Error('CSV not found');
-    const text = await res.text();
-    parseCSV(text);
+    const { data, error } = await supabase.from('patients').select('*').order('patient_id');
+    if (error) throw error;
+    PATIENTS_DB = data.map(row => {
+      const dob = new Date(row.date_of_birth);
+      return {
+        Patient_ID: row.patient_id,
+        FullName: row.name || generateMockName(row.patient_id, row.sex),
+        Age: isNaN(dob) ? 75 : new Date().getFullYear() - dob.getFullYear(),
+        Sex: row.sex || 'M',
+        Latest_eGFR: row.latest_egfr,
+        Long_Term_Conditions: row.long_term_conditions || '',
+        Current_Repeat_Medications: row.current_repeat_medications || '',
+        Date_of_Birth: row.date_of_birth,
+        BMI: row.bmi,
+        Weight_Kg: row.weight_kg,
+      };
+    });
+    const sub = document.querySelector('.search-sub');
+    if (sub) sub.textContent = 'Searching ' + PATIENTS_DB.length + ' patient records...';
+    auditLog('load_patients', { count: PATIENTS_DB.length });
   } catch (e) {
-    console.warn('Could not load patients.csv:', e);
-    document.getElementById('patient-search').placeholder = 'No patient data loaded \u2014 enter details manually';
+    console.warn('Could not load patients from Supabase, falling back to CSV:', e);
+    try {
+      const res = await fetch('./patients.csv');
+      if (!res.ok) throw new Error('CSV not found');
+      parseCSV(await res.text());
+      const sub = document.querySelector('.search-sub');
+      if (sub) sub.textContent = 'Searching ' + PATIENTS_DB.length + ' patient records (offline)...';
+    } catch (_) {
+      document.getElementById('patient-search').placeholder = 'No patient data loaded \u2014 enter details manually';
+    }
   }
 }
 
@@ -801,6 +895,10 @@ function runAlgorithm(meds, tags, age, egfr) {
   return {domainScores, overall, drugDetails, topOffenders};
 }
 
+// ── Store last result for save ──
+let lastAssessmentResult = null;
+let lastAssessmentParams = {};
+
 // ── Run Assessment ──
 function runAssessment() {
   const meds = getMeds();
@@ -815,6 +913,10 @@ function runAssessment() {
 
   const result = runAlgorithm(meds, currentTags, age, egfr);
 
+  // Store for save
+  lastAssessmentResult = result;
+  lastAssessmentParams = { patientId: nhs, age, sex, egfr, weight, meds };
+
   // Hide empty state, show results
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('results-panel').style.display = 'flex';
@@ -824,6 +926,9 @@ function runAssessment() {
   renderSpider(result);
   renderDomainGrid(result);
   renderDrugTable(result);
+
+  // Audit
+  auditLog('run_assessment', { patient_id: nhs, overall: result.overall });
 }
 
 // ── Render: Summary Strip ──
@@ -831,7 +936,7 @@ function renderSummary(name, nhs, age, sex, egfr, weight, medCount) {
   const eColor = egfrColor(egfr);
   const stage = ckdStage(egfr);
   document.getElementById('card-summary').innerHTML =
-    '<div class="card-title">&#x1F4CB; Patient Summary</div>' +
+    '<div class="card-title">&#x1F4CB; Patient Summary <button class="btn-history" onclick="showHistory(\'' + nhs.replace(/'/g, "\\'") + '\')">&#x1F4CB; History</button></div>' +
     '<div class="summary-grid">' +
       '<div class="summary-item"><div class="s-label">Name</div><div class="s-value">' + name + '</div></div>' +
       '<div class="summary-item"><div class="s-label">NHS No.</div><div class="s-value">' + nhs + '</div></div>' +
@@ -867,7 +972,9 @@ function renderRiskCard(result, medCount, age, egfr) {
         '<span><strong>' + medCount + '</strong> medications &middot; Age <strong>' + age + '</strong> &middot; eGFR <strong>' + egfr + '</strong></span>' +
         '<span class="band-badge" style="background:' + band.color + '">' + band.label + '</span>' +
       '</div>' +
-    '</div>';
+    '</div>' +
+    '<button class="btn-save-assessment" id="btn-save-assessment" onclick="saveAssessment()">&#x1F4BE; Save Assessment</button>' +
+    '<span class="save-confirm" id="save-confirm"></span>';
 }
 
 // ── Render: Spider Chart ──
@@ -1186,6 +1293,7 @@ function populateFromAI(data) {
   const medCount = data.medications?.length || 0;
   const diagCount = data.diagnoses?.length || 0;
   setAiStatus('\u2705 Extracted: ' + (data.name || 'patient') + ' \u00B7 ' + medCount + ' medication(s) \u00B7 ' + diagCount + ' diagnosis flag(s). Assessment running\u2026', 'ok');
+  auditLog('ai_import', { name: data.name, nhs_number: data.nhs_number, med_count: medCount, diag_count: diagCount });
   if (medCount > 0) runAssessment();
 }
 
@@ -1241,15 +1349,129 @@ function clearPatient() {
 
 // ── Auth ──
 function logout() {
-  sessionStorage.removeItem('polyrisk_auth');
+  sessionStorage.removeItem('clinician_auth');
   window.location.replace('./index.html');
+}
+
+// ── Save Assessment ──
+async function saveAssessment() {
+  if (!lastAssessmentResult || !lastAssessmentParams.patientId) return;
+  const btn = document.getElementById('btn-save-assessment');
+  const confirmEl = document.getElementById('save-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const clinicianEmail = sessionStorage.getItem('clinician_auth') || null;
+  const { error } = await supabase.from('assessments').insert({
+    patient_id: lastAssessmentParams.patientId,
+    clinician_id: null,
+    clinician_email: clinicianEmail,
+    age: lastAssessmentParams.age,
+    sex: lastAssessmentParams.sex,
+    egfr: lastAssessmentParams.egfr,
+    weight_kg: lastAssessmentParams.weight,
+    diagnoses: currentTags,
+    medications: lastAssessmentParams.meds,
+    overall_score: lastAssessmentResult.overall,
+    risk_band: bandOf(lastAssessmentResult.overall).label,
+    domain_scores: lastAssessmentResult.domainScores,
+    drug_details: lastAssessmentResult.drugDetails,
+    top_offenders: lastAssessmentResult.topOffenders,
+  });
+
+  if (error) {
+    confirmEl.textContent = 'Error: ' + error.message;
+    btn.disabled = false;
+    btn.innerHTML = '&#x1F4BE; Save Assessment';
+  } else {
+    auditLog('save_assessment', { patient_id: lastAssessmentParams.patientId });
+    btn.innerHTML = '&#x2705; Saved';
+    confirmEl.textContent = 'Assessment saved successfully';
+    setTimeout(() => { confirmEl.textContent = ''; btn.disabled = false; btn.innerHTML = '&#x1F4BE; Save Assessment'; }, 3000);
+  }
+}
+
+// ── Assessment History ──
+async function showHistory(patientId) {
+  const { data, error } = await supabase
+    .from('assessments')
+    .select('*')
+    .eq('patient_id', patientId)
+    .order('assessed_at', { ascending: false });
+
+  let inner = '<button class="history-close" onclick="this.closest(\'.history-overlay\').remove()">&times;</button>';
+  inner += '<h3>&#x1F4CB; Assessment History &mdash; ' + patientId + '</h3>';
+  if (error) {
+    inner += '<div class="history-empty">Error: ' + error.message + '</div>';
+  } else if (!data?.length) {
+    inner += '<div class="history-empty">No assessments on record for this patient.</div>';
+  } else {
+    inner += data.map(a => {
+      const band = bandOf(a.overall_score);
+      const dateStr = new Date(a.assessed_at).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+      return '<div class="history-item">' +
+        '<div><div class="hi-date">' + dateStr + '</div>' +
+        '<div class="hi-clinician">' + (a.clinician_email || 'Unknown clinician') + '</div></div>' +
+        '<div class="hi-score" style="color:' + band.color + '">' + a.overall_score + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'history-overlay';
+  overlay.innerHTML = '<div class="history-modal">' + inner + '</div>';
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+// ── Create / Edit Patient ──
+let isCreateMode = false;
+
+function enterCreateMode() {
+  isCreateMode = true;
+  clearPatient();
+  document.getElementById('f-nhs').removeAttribute('readonly');
+  document.getElementById('f-nhs').placeholder = 'e.g. P0101';
+  document.getElementById('f-nhs').focus();
+  document.getElementById('btn-save-patient').style.display = '';
+}
+
+function exitCreateMode() {
+  isCreateMode = false;
+  document.getElementById('f-nhs').setAttribute('readonly', '');
+  document.getElementById('f-nhs').placeholder = '';
+  document.getElementById('btn-save-patient').style.display = 'none';
+}
+
+async function savePatient() {
+  const patientId = document.getElementById('f-nhs').value.trim();
+  if (!patientId) { alert('Please enter a Patient ID.'); return; }
+
+  const { error } = await supabase.from('patients').upsert({
+    patient_id: patientId,
+    name: document.getElementById('f-name').value || null,
+    sex: document.getElementById('f-sex').value || null,
+    latest_egfr: parseFloat(document.getElementById('f-egfr').value) || null,
+    weight_kg: parseFloat(document.getElementById('f-weight').value) || 70,
+    long_term_conditions: currentTags.join('; ') || null,
+  }, { onConflict: 'patient_id' });
+
+  if (error) {
+    alert('Error saving patient: ' + error.message);
+  } else {
+    auditLog('create_patient', { patient_id: patientId });
+    alert('Patient saved successfully.');
+    exitCreateMode();
+    await loadPatients();
+  }
 }
 
 // ── Init ──
 window.onload = async function() {
-  const user = sessionStorage.getItem('polyrisk_auth');
+  const email = sessionStorage.getItem('clinician_auth');
   const userEl = document.getElementById('header-user');
-  if (userEl && user) userEl.textContent = '\uD83D\uDC64 ' + user;
+  if (userEl && email) userEl.textContent = '\uD83D\uDC64 ' + email;
+
   setupDrugList();
   initTagInput();
   initSearch();
@@ -1278,5 +1500,6 @@ window.onload = async function() {
   await loadPatients();
 };
 </script>
+<footer style="text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted)">PharmAware is not liable for any damages, adverse outcomes, or loss of life arising from the use of this tool. This software is intended for clinical decision support only and does not replace professional medical judgement.</footer>
 </body>
 </html>

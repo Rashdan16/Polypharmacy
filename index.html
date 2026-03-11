@@ -4,11 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PolyRisk — Sign In</title>
+<script src="./config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --nhs-blue:#005EB8;--nhs-dark:#003D78;--nhs-light:#D5E8F5;
-  --nhs-green:#007F3B;--nhs-red:#DA291C;
+  --nhs-green:#007F3B;--nhs-red:#DA291C;--nhs-teal:#006466;--nhs-teal-light:#E0F4F4;
   --bg:#F0F4F8;--card:#FFFFFF;--text:#212B36;--text-muted:#637381;--border:#DFE3E8;
   --radius:10px;--shadow:0 2px 12px rgba(0,0,0,.09);
 }
@@ -26,56 +31,123 @@ body{
 .top-bar .badge{display:flex;align-items:center}
 .top-bar p{color:rgba(255,255,255,.8);font-size:.8rem}
 
-/* Main */
-main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+/* Main — two-column layout */
+main{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:32px 20px;
+}
+.login-wrapper{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  width:100%;
+  max-width:900px;
+}
+@media(max-width:720px){
+  .login-wrapper{grid-template-columns:1fr}
+}
 
+/* Cards */
 .login-card{
   background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
-  border:1px solid var(--border);width:100%;max-width:420px;overflow:hidden;
+  border:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;
 }
 .login-header{
-  background:linear-gradient(135deg,var(--nhs-dark),var(--nhs-blue));
-  padding:32px 32px 28px;text-align:center;
+  padding:28px 28px 22px;text-align:center;
 }
-.login-header .icon{font-size:2.8rem;margin-bottom:10px}
-.login-header h1{color:#fff;font-size:1.4rem;font-weight:700}
-.login-header p{color:rgba(255,255,255,.75);font-size:.82rem;margin-top:4px}
+.login-header.clinician{
+  background:linear-gradient(135deg,var(--nhs-dark),var(--nhs-blue));
+}
+.login-header.patient{
+  background:linear-gradient(135deg,#004d4f,var(--nhs-teal));
+}
+.login-header h1{color:#fff;font-size:1.25rem;font-weight:700}
+.login-header .role-badge{
+  display:inline-block;padding:3px 14px;border-radius:20px;
+  font-size:.72rem;font-weight:700;letter-spacing:.5px;margin-bottom:10px;
+}
+.login-header.clinician .role-badge{background:rgba(255,255,255,.2);color:#fff}
+.login-header.patient .role-badge{background:rgba(255,255,255,.2);color:#fff}
+.login-header p{color:rgba(255,255,255,.75);font-size:.78rem;margin-top:4px}
 
-.login-body{padding:28px 32px 32px}
+.login-body{padding:24px 28px 28px;flex:1;display:flex;flex-direction:column}
 
-.form-group{margin-bottom:18px}
+.form-group{margin-bottom:16px}
 .form-group label{display:block;font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:6px}
 .form-group input{
-  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;
-  font-size:.95rem;outline:none;transition:border .2s,box-shadow .2s;
+  width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:.92rem;outline:none;transition:border .2s,box-shadow .2s;
 }
-.form-group input:focus{border-color:var(--nhs-blue);box-shadow:0 0 0 3px rgba(0,94,184,.15)}
 
-.btn-login{
-  width:100%;padding:13px;background:var(--nhs-blue);color:#fff;border:none;
-  border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;
+/* Clinician input focus */
+.card-clinician .form-group input:focus{
+  border-color:var(--nhs-blue);box-shadow:0 0 0 3px rgba(0,94,184,.15);
+}
+/* Patient input focus */
+.card-patient .form-group input:focus{
+  border-color:var(--nhs-teal);box-shadow:0 0 0 3px rgba(0,100,102,.15);
+}
+
+.btn-submit{
+  width:100%;padding:12px;color:#fff;border:none;
+  border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;
   transition:background .2s,transform .1s;margin-top:4px;
 }
-.btn-login:hover{background:var(--nhs-dark)}
-.btn-login:active{transform:scale(.98)}
+.btn-submit:active{transform:scale(.98)}
+.card-clinician .btn-submit{background:var(--nhs-blue)}
+.card-clinician .btn-submit:hover{background:var(--nhs-dark)}
+.card-patient .btn-submit{background:var(--nhs-teal)}
+.card-patient .btn-submit:hover{background:#004d4f}
 
 .error-msg{
   background:rgba(218,41,28,.07);border:1px solid rgba(218,41,28,.3);
   border-left:3px solid var(--nhs-red);color:var(--nhs-red);
-  padding:10px 14px;border-radius:6px;font-size:.85rem;margin-bottom:16px;
-  display:none;
+  padding:9px 12px;border-radius:6px;font-size:.82rem;margin-bottom:14px;display:none;
+}
+.success-msg{
+  background:rgba(0,127,59,.07);border:1px solid rgba(0,127,59,.3);
+  border-left:3px solid var(--nhs-green);color:var(--nhs-green);
+  padding:9px 12px;border-radius:6px;font-size:.82rem;margin-bottom:14px;display:none;
 }
 
-.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 
 .demo-hint{
-  background:var(--nhs-light);border-radius:7px;padding:12px 14px;
-  font-size:.78rem;color:var(--nhs-dark);line-height:1.6;
+  border-radius:7px;padding:11px 13px;
+  font-size:.76rem;line-height:1.7;margin-top:auto;
 }
+.card-clinician .demo-hint{background:var(--nhs-light);color:var(--nhs-dark)}
+.card-patient .demo-hint{background:var(--nhs-teal-light);color:#004d4f}
 .demo-hint strong{font-weight:700}
+.demo-hint .cred{
+  font-family:'Courier New',monospace;background:rgba(0,0,0,.07);
+  padding:1px 6px;border-radius:4px;font-size:.78rem;
+}
+
+.toggle-link{
+  display:block;text-align:center;margin-top:12px;font-size:.8rem;
+  cursor:pointer;text-decoration:underline;
+}
+.card-clinician .toggle-link{color:var(--nhs-blue)}
+.card-clinician .toggle-link:hover{color:var(--nhs-dark)}
+.card-patient .toggle-link{color:var(--nhs-teal)}
+.card-patient .toggle-link:hover{color:#004d4f}
+
+/* Confirm password */
+.confirm-group{display:none}
+
+/* Separator label */
+.or-sep{
+  text-align:center;color:var(--text-muted);font-size:.72rem;
+  margin:10px 0;position:relative;
+}
+.or-sep::before,.or-sep::after{
+  content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border);
+}
+.or-sep::before{left:0}.or-sep::after{right:0}
 
 /* Footer */
-footer{text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted)}
+footer{text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted);background:var(--bg)}
 </style>
 </head>
 <body>
@@ -99,81 +171,246 @@ footer{text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted)}
 </div>
 
 <main>
-  <div class="login-card">
-    <div class="login-header">
-      <div style="display:flex;justify-content:center;margin-bottom:14px">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 68" height="48">
-          <defs>
-            <marker id="mT3" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#4ECDC4"/></marker>
-            <marker id="mB3" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#7092B0"/></marker>
-          </defs>
-          <path d="M14.2 47 A24 24 0 0 1 47 14.2" fill="none" stroke="#4ECDC4" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mT3)"/>
-          <path d="M47 14.2 A24 24 0 0 1 47 55.8" fill="none" stroke="#7092B0" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mB3)"/>
-          <path d="M47 55.8 A24 24 0 0 1 14.2 47" fill="none" stroke="#5CB85C" stroke-width="5.5" stroke-linecap="round"/>
-          <text font-family="'Segoe UI',system-ui,sans-serif" font-size="32" font-weight="700" y="46">
-            <tspan x="72" fill="#5CB85C">Pharm</tspan><tspan fill="#7092B0">Aware</tspan>
-          </text>
-        </svg>
-      </div>
-      <h1>Sign in</h1>
-      <p>Polypharmacy Risk Assessment Tool</p>
-    </div>
-    <div class="login-body">
-      <div class="error-msg" id="error-msg">&#x26A0; Incorrect username or password.</div>
+  <div class="login-wrapper">
 
-      <form id="login-form" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" id="username" placeholder="Enter your username" autocomplete="username" required>
+    <!-- Clinician Card -->
+    <div class="login-card card-clinician">
+      <div class="login-header clinician">
+        <div style="display:flex;justify-content:center;margin-bottom:12px">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 68" height="40">
+            <defs>
+              <marker id="mT3" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#4ECDC4"/></marker>
+              <marker id="mB3" markerWidth="7" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0,7 3.5,0 7" fill="#7092B0"/></marker>
+            </defs>
+            <path d="M14.2 47 A24 24 0 0 1 47 14.2" fill="none" stroke="#4ECDC4" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mT3)"/>
+            <path d="M47 14.2 A24 24 0 0 1 47 55.8" fill="none" stroke="#7092B0" stroke-width="5.5" stroke-linecap="round" marker-end="url(#mB3)"/>
+            <path d="M47 55.8 A24 24 0 0 1 14.2 47" fill="none" stroke="#5CB85C" stroke-width="5.5" stroke-linecap="round"/>
+            <text font-family="'Segoe UI',system-ui,sans-serif" font-size="32" font-weight="700" y="46">
+              <tspan x="72" fill="#5CB85C">Pharm</tspan><tspan fill="#7092B0">Aware</tspan>
+            </text>
+          </svg>
         </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
+        <div class="role-badge">&#x1F9D1;&#x200D;&#x2695;&#xFE0F; Clinician Portal</div>
+        <h1 id="c-form-title">Sign In</h1>
+        <p>NHS Polypharmacy Risk Assessment</p>
+      </div>
+      <div class="login-body">
+        <div class="error-msg" id="c-error-msg"></div>
+        <div class="success-msg" id="c-success-msg"></div>
+
+        <form id="clinician-form" onsubmit="handleClinicianLogin(event)">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="c-email" placeholder="clinician@nhs.uk" autocomplete="email" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="c-password" placeholder="Enter your password" autocomplete="current-password" required>
+          </div>
+          <div class="form-group confirm-group" id="c-confirm-group">
+            <label>Confirm Password</label>
+            <input type="password" id="c-confirm" placeholder="Confirm password" autocomplete="new-password">
+          </div>
+          <button class="btn-submit" type="submit" id="c-submit-btn">Sign In</button>
+        </form>
+
+        <span class="toggle-link" id="c-toggle-link" onclick="toggleClinicianMode()">Don't have an account? Register</span>
+
+        <hr class="divider">
+
+        <div class="demo-hint">
+          <strong>Demo credentials</strong><br>
+          Email: <span class="cred">clinician@nhs.demo</span><br>
+          Password: <span class="cred">Demo1234!</span>
         </div>
-        <button class="btn-login" type="submit">Sign In</button>
-      </form>
-
-      <hr class="divider">
-
-      <div class="demo-hint">
-        <strong>Demo credentials</strong><br>
-        Username: <strong>nhs.admin</strong><br>
-        Password: <strong>PolyRisk2026</strong>
       </div>
     </div>
+
+    <!-- Patient Card -->
+    <div class="login-card card-patient">
+      <div class="login-header patient">
+        <div style="font-size:2.4rem;margin-bottom:10px">&#x1F9D1;</div>
+        <div class="role-badge">&#x1F4CB; Patient Portal</div>
+        <h1>My Health Record</h1>
+        <p>View your medication review &amp; risk summary</p>
+      </div>
+      <div class="login-body">
+        <div class="error-msg" id="p-error-msg"></div>
+        <div class="success-msg" id="p-success-msg"></div>
+
+        <form id="patient-form" onsubmit="handlePatientLogin(event)">
+          <div class="form-group">
+            <label>Patient ID</label>
+            <input type="text" id="p-id" placeholder="e.g. P0001" autocomplete="off" required>
+          </div>
+          <button class="btn-submit" type="submit">Access My Record</button>
+        </form>
+
+        <hr class="divider">
+
+        <div class="demo-hint">
+          <strong>How to log in</strong><br>
+          Enter your Patient ID (e.g. <span class="cred">P0001</span>).<br>
+          Your record is loaded directly from the database.
+        </div>
+      </div>
+    </div>
+
   </div>
 </main>
 
-<footer>PolyRisk &mdash; For demonstration purposes only. Not for clinical use.</footer>
+<footer>PolyRisk &mdash; For demonstration purposes only. Not for clinical use.<br>PharmAware is not liable for any damages, adverse outcomes, or loss of life arising from the use of this tool. This software is intended for clinical decision support only and does not replace professional medical judgement.</footer>
 
 <script>
-// Demo users
-const USERS = [
-  {username: 'nhs.admin', password: 'PolyRisk2026'},
-  {username: 'clinician', password: 'NHSpass1'},
+// Hardcoded clinician demo accounts
+const CLINICIAN_USERS = [
+  { email: 'clinician@nhs.demo', password: 'Demo1234!' },
+  { email: 'admin@nhs.demo',     password: 'Demo1234!' },
 ];
 
-function handleLogin(e) {
-  e.preventDefault();
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  const errorEl = document.getElementById('error-msg');
-
-  const match = USERS.find(u => u.username === username && u.password === password);
-  if (match) {
-    sessionStorage.setItem('polyrisk_auth', username);
-    window.location.href = './polyrisk.html';
+function showMsg(errId, sucId, type, msg) {
+  document.getElementById(errId).style.display = 'none';
+  document.getElementById(sucId).style.display = 'none';
+  if (type === 'error') {
+    document.getElementById(errId).innerHTML = '&#x26A0; ' + msg;
+    document.getElementById(errId).style.display = 'block';
   } else {
-    errorEl.style.display = 'block';
-    document.getElementById('password').value = '';
-    document.getElementById('password').focus();
+    document.getElementById(sucId).innerHTML = '&#x2705; ' + msg;
+    document.getElementById(sucId).style.display = 'block';
   }
 }
 
-// If already logged in, skip to app
-if (sessionStorage.getItem('polyrisk_auth')) {
+function toggleClinicianMode() {
+  const form = document.getElementById('clinician-form');
+  isRegisterMode = !isRegisterMode;
+  document.getElementById('c-error-msg').style.display = 'none';
+  document.getElementById('c-success-msg').style.display = 'none';
+  document.getElementById('c-form-title').textContent = isRegisterMode ? 'Register' : 'Sign In';
+  document.getElementById('c-submit-btn').textContent = isRegisterMode ? 'Create Account' : 'Sign In';
+  document.getElementById('c-confirm-group').style.display = isRegisterMode ? 'block' : 'none';
+  document.getElementById('c-toggle-link').textContent = isRegisterMode
+    ? 'Already have an account? Sign in'
+    : "Don't have an account? Register";
+}
+
+let isRegisterMode = false;
+
+function handleClinicianLogin(e) {
+  e.preventDefault();
+  const email    = document.getElementById('c-email').value.trim();
+  const password = document.getElementById('c-password').value;
+
+  if (isRegisterMode) {
+    const confirm = document.getElementById('c-confirm').value;
+    if (password !== confirm) { showMsg('c-error-msg','c-success-msg','error','Passwords do not match.'); return; }
+    if (password.length < 6)  { showMsg('c-error-msg','c-success-msg','error','Password must be at least 6 characters.'); return; }
+    showMsg('c-error-msg','c-success-msg','success','Account created! Signing you in...');
+    setTimeout(() => {
+      sessionStorage.setItem('clinician_auth', email);
+      window.location.href = './polyrisk.html';
+    }, 800);
+    return;
+  }
+
+  const match = CLINICIAN_USERS.find(u => u.email === email && u.password === password);
+  if (!match) {
+    showMsg('c-error-msg','c-success-msg','error','Incorrect email or password.');
+    document.getElementById('c-password').value = '';
+    return;
+  }
+  sessionStorage.setItem('clinician_auth', email);
   window.location.href = './polyrisk.html';
 }
+
+async function handlePatientLogin(e) {
+  e.preventDefault();
+  const patientId = document.getElementById('p-id').value.trim().toUpperCase();
+  const btn = document.querySelector('#patient-form button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+
+  try {
+    // Try Supabase first
+    const { data, error } = await supabase
+      .from('patients')
+      .select('patient_id, name, date_of_birth, sex, latest_egfr, bmi, smoking_status, allergies, long_term_conditions, current_repeat_medications, last_review_date')
+      .eq('patient_id', patientId)
+      .single();
+
+    if (!error && data) {
+      sessionStorage.setItem('patient_auth', JSON.stringify(data));
+      window.location.href = './patient-portal.html';
+      return;
+    }
+  } catch (_) { /* Supabase unavailable, try CSV */ }
+
+  // Fallback: load from CSV
+  try {
+    const res = await fetch('./patients.csv');
+    if (!res.ok) throw new Error('CSV not found');
+    const text = await res.text();
+    const patient = findPatientInCSV(text, patientId);
+    if (patient) {
+      sessionStorage.setItem('patient_auth', JSON.stringify(patient));
+      window.location.href = './patient-portal.html';
+      return;
+    }
+  } catch (_) {}
+
+  btn.disabled = false; btn.textContent = 'Access My Record';
+  showMsg('p-error-msg', 'p-success-msg', 'error', 'Patient ID not found. Please check and try again.');
+}
+
+function findPatientInCSV(csvText, targetId) {
+  const lines = csvText.trim().split('\n');
+  const headers = parseCSVLine(lines[0]);
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    if (cols.length < headers.length) continue;
+    const obj = {};
+    headers.forEach((h, j) => { obj[h.trim()] = (cols[j] || '').trim(); });
+    if (obj.Patient_ID === targetId) {
+      return {
+        patient_id: obj.Patient_ID,
+        name: null,
+        date_of_birth: obj.Date_of_Birth || null,
+        sex: obj.Sex || null,
+        latest_egfr: obj.Latest_eGFR ? parseFloat(obj.Latest_eGFR) : null,
+        bmi: obj.BMI ? parseFloat(obj.BMI) : null,
+        smoking_status: obj.Smoking_Status || null,
+        allergies: obj.Allergies || null,
+        long_term_conditions: obj.Long_Term_Conditions || null,
+        current_repeat_medications: obj.Current_Repeat_Medications || null,
+        last_review_date: obj.Last_Review_Date || null,
+      };
+    }
+  }
+  return null;
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < line.length && line[i + 1] === '"') { current += '"'; i++; }
+        else inQuotes = false;
+      } else current += ch;
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === ',') { result.push(current); current = ''; }
+      else current += ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+// ── Auto-redirect if already authenticated ──
+if (sessionStorage.getItem('clinician_auth')) window.location.href = './polyrisk.html';
+if (sessionStorage.getItem('patient_auth')) window.location.href = './patient-portal.html';
 </script>
 </body>
 </html>
