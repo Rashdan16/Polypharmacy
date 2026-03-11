@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026-03-11] - Add mock assessments for P0001 and P0002
+- Added 4 mock assessment INSERT statements to `seed-supabase.sql` (2 per patient)
+- **P0001** (83F, AF/HF/CKD3/T2DM, 6 meds): scores 5.82 MODERATE (Feb 2026, dr.patel) and 5.45 MODERATE (Sep 2025, pharmacist.jones). Key risks: bleed 6.7 (warfarin), renal 6.4 (metformin+furosemide), fall 5.3
+- **P0002** (76M, T2DM/HYPERTENSION/OBESITY, 5 meds): scores 3.28 MODERATE (Jan 2026, dr.patel) and 3.02 MODERATE (Aug 2025, pharmacist.jones). Key risks: renal 5.3 (metformin+gliclazide), fall 3.5 (amlodipine)
+- Domain scores, drug details, and top offenders all populated based on the actual risk engine logic
+- Files affected: `seed-supabase.sql`, `CHANGELOG.md`
+
 ## [2026-03-11] - Remove Overview tab, make Medication Schedule the default
 - Removed the Overview tab button and its panel (contacts card) entirely
 - Medication Schedule is now the first and default active tab on page load

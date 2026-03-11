@@ -317,3 +317,71 @@ VALUES ('P0100', 'F', '1976-04-16', 'QT_PROLONGED_HX;AF;HF', 'QT_PROLONGED_HX', 
 ON CONFLICT (patient_id) DO NOTHING;
 
 -- Verify: SELECT count(*) FROM patients;
+
+-- ═══════════════════════════════════════════
+-- Mock assessments for P0001 and P0002
+-- ═══════════════════════════════════════════
+
+-- P0001: 82F, AF;HF;CKD3;T2DM, on warfarin/bisoprolol/ramipril/furosemide/metformin/atorvastatin, eGFR 88
+INSERT INTO assessments (patient_id, clinician_email, assessed_at, age, sex, egfr, weight_kg, diagnoses, medications, overall_score, risk_band, domain_scores, drug_details, top_offenders)
+VALUES (
+  'P0001',
+  'dr.patel@nhs.net',
+  '2026-02-15 10:30:00+00',
+  83, 'F', 88, 68,
+  ARRAY['AF','HF','CKD3','T2DM'],
+  '[{"name":"warfarin","dose":"3 mg"},{"name":"bisoprolol","dose":"5 mg"},{"name":"ramipril","dose":"5 mg"},{"name":"furosemide","dose":"40 mg"},{"name":"metformin","dose":"500 mg"},{"name":"atorvastatin","dose":"40 mg"}]'::jsonb,
+  5.82,
+  'MODERATE',
+  '{"fall":5.3,"bleed":6.7,"acb":0.3,"qt":1.7,"frailty":4.5,"renal":6.4}'::jsonb,
+  '[{"drug":"warfarin","fall":1,"bleed":3,"acb":0,"qt":0,"frailty":1,"renal":1},{"drug":"bisoprolol","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":1},{"drug":"ramipril","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":2},{"drug":"furosemide","fall":2,"bleed":0,"acb":0,"qt":1,"frailty":1,"renal":2},{"drug":"metformin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":3},{"drug":"atorvastatin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":0}]'::jsonb,
+  '[{"drug":"warfarin","domain":"bleed","score":3},{"drug":"metformin","domain":"renal","score":3},{"drug":"furosemide","domain":"fall","score":2}]'::jsonb
+);
+
+INSERT INTO assessments (patient_id, clinician_email, assessed_at, age, sex, egfr, weight_kg, diagnoses, medications, overall_score, risk_band, domain_scores, drug_details, top_offenders)
+VALUES (
+  'P0001',
+  'pharmacist.jones@nhs.net',
+  '2025-09-20 14:15:00+00',
+  82, 'F', 90, 69,
+  ARRAY['AF','HF','CKD3','T2DM'],
+  '[{"name":"warfarin","dose":"3 mg"},{"name":"bisoprolol","dose":"5 mg"},{"name":"ramipril","dose":"5 mg"},{"name":"furosemide","dose":"40 mg"},{"name":"metformin","dose":"500 mg"},{"name":"atorvastatin","dose":"40 mg"}]'::jsonb,
+  5.45,
+  'MODERATE',
+  '{"fall":4.9,"bleed":6.3,"acb":0.3,"qt":1.7,"frailty":4.0,"renal":5.5}'::jsonb,
+  '[{"drug":"warfarin","fall":1,"bleed":3,"acb":0,"qt":0,"frailty":1,"renal":1},{"drug":"bisoprolol","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":1},{"drug":"ramipril","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":2},{"drug":"furosemide","fall":2,"bleed":0,"acb":0,"qt":1,"frailty":1,"renal":2},{"drug":"metformin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":3},{"drug":"atorvastatin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":0}]'::jsonb,
+  '[{"drug":"warfarin","domain":"bleed","score":3},{"drug":"metformin","domain":"renal","score":3},{"drug":"furosemide","domain":"fall","score":2}]'::jsonb
+);
+
+-- P0002: 76M, T2DM;HYPERTENSION;OBESITY, on metformin/gliclazide/ramipril/amlodipine/atorvastatin, eGFR 72
+INSERT INTO assessments (patient_id, clinician_email, assessed_at, age, sex, egfr, weight_kg, diagnoses, medications, overall_score, risk_band, domain_scores, drug_details, top_offenders)
+VALUES (
+  'P0002',
+  'dr.patel@nhs.net',
+  '2026-01-22 09:45:00+00',
+  76, 'M', 72, 92,
+  ARRAY['T2DM','HYPERTENSION','OBESITY'],
+  '[{"name":"metformin","dose":"1000 mg"},{"name":"gliclazide","dose":"80 mg"},{"name":"ramipril","dose":"10 mg"},{"name":"amlodipine","dose":"5 mg"},{"name":"atorvastatin","dose":"20 mg"}]'::jsonb,
+  3.28,
+  'MODERATE',
+  '{"fall":3.5,"bleed":0.8,"acb":0.3,"qt":0.4,"frailty":2.3,"renal":5.3}'::jsonb,
+  '[{"drug":"metformin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":3},{"drug":"gliclazide","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":1,"renal":2},{"drug":"ramipril","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":2},{"drug":"amlodipine","fall":2,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":0},{"drug":"atorvastatin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":0}]'::jsonb,
+  '[{"drug":"metformin","domain":"renal","score":3},{"drug":"amlodipine","domain":"fall","score":2},{"drug":"gliclazide","domain":"renal","score":2}]'::jsonb
+);
+
+INSERT INTO assessments (patient_id, clinician_email, assessed_at, age, sex, egfr, weight_kg, diagnoses, medications, overall_score, risk_band, domain_scores, drug_details, top_offenders)
+VALUES (
+  'P0002',
+  'pharmacist.jones@nhs.net',
+  '2025-08-10 11:00:00+00',
+  75, 'M', 75, 94,
+  ARRAY['T2DM','HYPERTENSION','OBESITY'],
+  '[{"name":"metformin","dose":"1000 mg"},{"name":"gliclazide","dose":"80 mg"},{"name":"ramipril","dose":"10 mg"},{"name":"amlodipine","dose":"5 mg"},{"name":"atorvastatin","dose":"20 mg"}]'::jsonb,
+  3.02,
+  'MODERATE',
+  '{"fall":3.1,"bleed":0.8,"acb":0.3,"qt":0.4,"frailty":2.0,"renal":4.8}'::jsonb,
+  '[{"drug":"metformin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":3},{"drug":"gliclazide","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":1,"renal":2},{"drug":"ramipril","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":2},{"drug":"amlodipine","fall":2,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":0},{"drug":"atorvastatin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":0}]'::jsonb,
+  '[{"drug":"metformin","domain":"renal","score":3},{"drug":"amlodipine","domain":"fall","score":2},{"drug":"gliclazide","domain":"renal","score":2}]'::jsonb
+);
+
+-- Verify: SELECT count(*) FROM assessments;
