@@ -60,9 +60,7 @@ body{
 .hero-greeting{color:rgba(255,255,255,.75);font-size:.85rem;margin-bottom:4px}
 .hero-name{color:#fff;font-size:1.7rem;font-weight:800;margin-bottom:6px;letter-spacing:-.5px}
 .hero-sub{color:rgba(255,255,255,.7);font-size:.85rem;margin-bottom:28px}
-.hero-tabs{
-  display:flex;gap:0;border-bottom:none;margin-top:4px;
-}
+.hero-tabs{display:flex;gap:0;border-bottom:none;margin-top:4px}
 .hero-tab{
   padding:11px 22px;font-size:.85rem;font-weight:600;color:rgba(255,255,255,.65);
   background:none;border:none;cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;
@@ -91,47 +89,6 @@ body{
   letter-spacing:.5px;padding-bottom:10px;margin-bottom:14px;
   border-bottom:2px solid var(--teal-light);display:flex;align-items:center;gap:7px;
 }
-
-/* ── Overview grid ── */
-.overview-grid{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
-@media(max-width:720px){.overview-grid{grid-template-columns:1fr}}
-
-/* ── Latest Score Card ── */
-.score-card{
-  background:linear-gradient(145deg,var(--teal-dark),var(--teal));
-  border-radius:var(--radius);padding:24px;color:#fff;text-align:center;
-  box-shadow:var(--shadow-lg);
-}
-.score-card .sc-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;opacity:.8;margin-bottom:14px}
-.score-gauge{
-  width:130px;height:130px;border-radius:50%;margin:0 auto 16px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:rgba(255,255,255,.12);border:4px solid rgba(255,255,255,.25);
-  position:relative;
-}
-.score-gauge .sg-num{font-size:2.6rem;font-weight:900;line-height:1}
-.score-gauge .sg-den{font-size:.78rem;opacity:.7;margin-top:2px}
-.score-band{
-  display:inline-block;padding:4px 16px;border-radius:20px;
-  font-size:.78rem;font-weight:700;letter-spacing:.3px;
-  background:rgba(255,255,255,.2);margin-bottom:14px;
-}
-.score-date{font-size:.72rem;opacity:.65;margin-top:4px}
-.score-meta-row{display:flex;justify-content:center;gap:16px;margin-top:12px;font-size:.75rem;opacity:.8}
-.score-meta-row span{display:flex;align-items:center;gap:4px}
-
-/* ── Domain grid ── */
-.domain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-@media(max-width:600px){.domain-grid{grid-template-columns:repeat(2,1fr)}}
-.domain-tile{
-  border-radius:var(--radius-sm);padding:12px 14px;
-  border-left:4px solid;background:var(--card);
-}
-.domain-tile .dt-name{font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px}
-.domain-tile .dt-score{font-size:1.6rem;font-weight:900;line-height:1;margin:4px 0 2px}
-.domain-tile .dt-band{font-size:.68rem;font-weight:700;text-transform:uppercase}
-.domain-tile .dt-bar{height:4px;background:#eee;border-radius:2px;margin-top:8px;overflow:hidden}
-.domain-tile .dt-fill{height:100%;border-radius:2px;transition:width .6s ease}
 
 /* ── Profile ── */
 .profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px}
@@ -227,6 +184,147 @@ footer{
 .a11y-btn:hover{background:rgba(255,255,255,.28)}
 .a11y-btn.active{background:rgba(255,255,255,.35);border-color:rgba(255,255,255,.7)}
 
+/* ══════════════════════════════════════════════
+   MEDICATION SCHEDULE TAB
+   ══════════════════════════════════════════════ */
+
+/* ── First Dose Card ── */
+.first-dose-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:16px 20px;margin-bottom:14px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.first-dose-card .fd-label{font-size:.85rem;font-weight:700;color:var(--text)}
+.first-dose-card .fd-desc{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+.first-dose-card input[type="time"]{
+  padding:8px 12px;border:2px solid var(--teal);border-radius:8px;
+  font-size:.92rem;font-weight:600;outline:none;color:var(--text);background:var(--card);
+}
+.first-dose-card input[type="time"]:focus{box-shadow:0 0 0 3px rgba(0,100,102,.2)}
+.fd-set-btn{
+  background:var(--teal);color:#fff;border:none;border-radius:8px;
+  padding:8px 20px;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s;
+}
+.fd-set-btn:hover{background:var(--teal-dark)}
+.fd-status{font-size:.78rem;font-weight:600;color:var(--nhs-green)}
+.fd-reset{font-size:.75rem;color:var(--teal);text-decoration:none}
+.fd-reset:hover{text-decoration:underline}
+
+/* ── Next Dose Banner ── */
+.next-dose-banner{
+  background:linear-gradient(135deg,var(--teal),var(--teal-mid));
+  border-radius:var(--radius);padding:20px 24px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  color:#fff;flex-wrap:wrap;
+}
+.ndb-left{display:flex;align-items:center;gap:14px}
+.ndb-icon{font-size:2rem}
+.ndb-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;opacity:.8}
+.ndb-meds{font-size:1.05rem;font-weight:700;margin-top:2px}
+.ndb-note{font-size:.8rem;opacity:.85;margin-top:4px}
+.ndb-countdown{
+  text-align:center;background:rgba(255,255,255,.15);border-radius:var(--radius-sm);
+  padding:12px 20px;min-width:100px;
+}
+.ndb-time{font-size:1.5rem;font-weight:900}
+.ndb-until{font-size:.68rem;text-transform:uppercase;letter-spacing:.3px;opacity:.8}
+
+/* ── Adherence Strip ── */
+.adherence-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:600px){.adherence-strip{grid-template-columns:repeat(2,1fr)}}
+.adh-stat{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 16px;text-align:center;box-shadow:var(--shadow);
+}
+.adh-num{font-size:1.5rem;font-weight:900;color:var(--teal)}
+.adh-label{font-size:.7rem;text-transform:uppercase;font-weight:600;color:var(--text-muted);letter-spacing:.3px;margin-top:2px}
+
+/* ── Calendar Toolbar ── */
+.cal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.cal-toolbar-left{display:flex;align-items:center;gap:8px}
+.cal-today-btn{
+  background:var(--teal);color:#fff;border:none;border-radius:6px;
+  padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer;transition:background .15s;
+}
+.cal-today-btn:hover{background:var(--teal-dark)}
+.cal-nav-btn{
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:6px 10px;font-size:.85rem;cursor:pointer;color:var(--text);transition:background .15s;
+}
+.cal-nav-btn:hover{background:var(--teal-light)}
+.cal-title{font-size:.9rem;font-weight:700;color:var(--text)}
+.cal-view-toggle{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.cal-view-btn{
+  background:var(--card);border:none;padding:6px 16px;font-size:.78rem;font-weight:600;
+  cursor:pointer;color:var(--text-muted);transition:background .15s,color .15s;
+}
+.cal-view-btn.active{background:var(--teal);color:#fff}
+.cal-view-btn:not(.active):hover{background:var(--teal-light)}
+
+/* ── Calendar Grids ── */
+.cal-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.cal-grid-week{
+  display:grid;grid-template-columns:60px repeat(7,1fr);
+  border-top:1px solid var(--border);border-left:1px solid var(--border);
+  border-radius:var(--radius-sm);overflow:hidden;min-width:700px;
+}
+.cal-grid-week>*{border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.cal-corner{background:var(--teal-pale);padding:8px}
+.cal-day-hdr{
+  background:var(--teal-pale);text-align:center;padding:8px 4px;
+  font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
+}
+.cal-day-hdr .cal-hdr-num{display:block;font-size:1.1rem;font-weight:800;color:var(--text);margin-top:2px}
+.cal-day-hdr .cal-hdr-num.today{
+  background:var(--teal);color:#fff;width:28px;height:28px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.cal-time{
+  font-size:.7rem;font-weight:600;color:var(--text-muted);padding:4px 6px;
+  text-align:right;background:var(--card);min-height:70px;
+  display:flex;align-items:flex-start;justify-content:flex-end;
+}
+.cal-cell{padding:3px;min-height:70px;background:var(--card);position:relative}
+
+.cal-grid-day{
+  display:grid;grid-template-columns:60px 1fr;
+  border-top:1px solid var(--border);border-left:1px solid var(--border);
+  border-radius:var(--radius-sm);overflow:hidden;
+}
+.cal-grid-day>*{border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.cal-grid-day .cal-time{min-height:80px}
+.cal-grid-day .cal-cell{min-height:80px}
+
+/* ── Event Chips ── */
+.med-ev{
+  display:block;padding:4px 8px;border-radius:6px;font-size:.68rem;font-weight:600;
+  border-left:3px solid;margin-bottom:3px;cursor:default;
+  transition:transform .15s,box-shadow .15s;line-height:1.3;
+}
+.med-ev:hover{transform:scale(1.03);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.med-ev-time{font-weight:700;font-size:.65rem;opacity:.8}
+.cal-grid-day .med-ev{padding:8px 12px;font-size:.78rem;margin-bottom:6px}
+.cal-grid-day .med-ev .med-ev-note{display:block;font-size:.7rem;font-weight:400;opacity:.7;margin-top:2px}
+
+.med-ev-blue   {background:#E3F2FD;color:#1565C0;border-color:#1565C0}
+.med-ev-teal   {background:#E0F2F1;color:#00695C;border-color:#00695C}
+.med-ev-amber  {background:#FFF8E1;color:#E65100;border-color:#E65100}
+.med-ev-red    {background:#FFEBEE;color:#B71C1C;border-color:#B71C1C}
+.med-ev-purple {background:#F3E5F5;color:#6A1B9A;border-color:#6A1B9A}
+.med-ev-green  {background:#E8F5E9;color:#2E7D32;border-color:#2E7D32}
+.med-ev-indigo {background:#E8EAF6;color:#283593;border-color:#283593}
+.med-ev-pink   {background:#FCE4EC;color:#AD1457;border-color:#AD1457}
+
+/* ── Legend ── */
+.cal-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--text)}
+.cal-legend-dot{width:10px;height:10px;border-radius:50%}
+
+/* ── PRN ── */
+.prn-item{padding:10px 14px;background:var(--teal-pale);border:1px solid var(--teal-light);border-radius:var(--radius-sm);margin-bottom:8px}
+.prn-item .prn-name{font-size:.88rem;font-weight:700;color:var(--text)}
+.prn-item .prn-note{font-size:.78rem;color:var(--text-muted);margin-top:2px}
+
 /* ── Dark mode ── */
 body.dark-mode{
   --bg:#111827;--card:#1F2937;--text:#F3F4F6;--text-muted:#9CA3AF;
@@ -235,9 +333,19 @@ body.dark-mode{
 body.dark-mode .header{background:linear-gradient(135deg,#002424 0%,#003838 60%,#004a4a 100%)}
 body.dark-mode .hero{background:linear-gradient(135deg,#002424 0%,#003838 100%)}
 body.dark-mode .hero-tab.active{background:var(--bg);color:#5eead4}
-body.dark-mode .score-card{background:linear-gradient(145deg,#002424,#003838)}
 body.dark-mode .skel{background:linear-gradient(90deg,#374151 25%,#4B5563 50%,#374151 75%);background-size:200% 100%}
 body.dark-mode footer{background:var(--card);color:var(--text-muted)}
+body.dark-mode .next-dose-banner{background:linear-gradient(135deg,#003838,#004a4a)}
+body.dark-mode .first-dose-card input[type="time"]{background:var(--card);color:var(--text);border-color:#00888A}
+body.dark-mode .cal-day-hdr,body.dark-mode .cal-corner{background:#1a2a2b}
+body.dark-mode .med-ev-blue  {background:#1a2744;color:#90CAF9;border-color:#42A5F5}
+body.dark-mode .med-ev-teal  {background:#1a2e2d;color:#80CBC4;border-color:#26A69A}
+body.dark-mode .med-ev-amber {background:#2e2410;color:#FFB74D;border-color:#FF9800}
+body.dark-mode .med-ev-red   {background:#2e1515;color:#EF9A9A;border-color:#EF5350}
+body.dark-mode .med-ev-purple{background:#251830;color:#CE93D8;border-color:#AB47BC}
+body.dark-mode .med-ev-green {background:#1a2e1a;color:#A5D6A7;border-color:#66BB6A}
+body.dark-mode .med-ev-indigo{background:#1a1a30;color:#9FA8DA;border-color:#5C6BC0}
+body.dark-mode .med-ev-pink  {background:#2e1520;color:#F48FB1;border-color:#EC407A}
 
 /* ── High contrast ── */
 body.high-contrast{
@@ -249,9 +357,11 @@ body.high-contrast .header{background:#000;border-bottom:2px solid #fff}
 body.high-contrast .hero{background:#000;border-bottom:2px solid #fff}
 body.high-contrast .hero-tab{color:#ccc}
 body.high-contrast .hero-tab.active{background:#000;color:#00ffff;border-bottom-color:#00ffff}
-body.high-contrast .score-card{background:#000;border:2px solid #fff}
 body.high-contrast .a11y-btn{border-color:#fff;color:#fff}
 body.high-contrast .btn-logout{border-color:#fff}
+body.high-contrast .next-dose-banner{background:#000;border:2px solid #fff}
+body.high-contrast .first-dose-card input[type="time"]{background:#000;color:#fff;border-color:#00ffff}
+body.high-contrast .med-ev{border-left-width:4px}
 </style>
 </head>
 <body>
@@ -285,6 +395,7 @@ body.high-contrast .btn-logout{border-color:#fff}
     <div class="hero-sub" id="hero-sub">Loading your health record&hellip;</div>
     <div class="hero-tabs">
       <button class="hero-tab active" onclick="switchTab('overview',this)">Overview</button>
+      <button class="hero-tab" onclick="switchTab('schedule',this)">Medication Schedule</button>
       <button class="hero-tab" onclick="switchTab('medications',this)">Medications</button>
       <button class="hero-tab" onclick="switchTab('history',this)">Assessment History</button>
       <button class="hero-tab" onclick="switchTab('profile',this)">My Profile</button>
@@ -297,39 +408,6 @@ body.high-contrast .btn-logout{border-color:#fff}
 
   <!-- Overview Tab -->
   <div class="tab-panel active" id="panel-overview">
-
-    <div class="overview-grid">
-
-      <!-- Latest score -->
-      <div class="score-card" id="score-card">
-        <div class="sc-label">&#x26A1; Latest Risk Score</div>
-        <div class="score-gauge" id="score-gauge">
-          <span class="sg-num" id="sg-num">—</span>
-          <span class="sg-den">/ 10</span>
-        </div>
-        <div class="score-band" id="score-band">No Assessment Yet</div>
-        <div class="score-date" id="score-date"></div>
-        <div class="score-meta-row" id="score-meta"></div>
-      </div>
-
-      <!-- Domain tiles -->
-      <div>
-        <div class="card-title">&#x1F4CA; Risk Domain Breakdown</div>
-        <div class="domain-grid" id="domain-grid">
-          <div class="empty"><div class="ei">&#x1F4CA;</div><p>No assessment data yet</p></div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Advice -->
-    <div class="advice-banner">
-      <h3>&#x2139;&#xFE0F; Understanding your risk score</h3>
-      <p>Your risk score is calculated by your clinical team across six areas: <strong>Fall Risk, Bleeding Risk, Anticholinergic Burden (ACB), QT Prolongation Risk, Frailty, and Renal Risk</strong>. A higher score indicates a greater need for a medication review.</p>
-      <p><strong>This score does not mean you are in danger.</strong> It helps your pharmacist and GP identify which medications may need to be reviewed together. Do not stop or change any medication without speaking to your clinical team first.</p>
-    </div>
-
-    <!-- Contacts -->
     <div class="card">
       <div class="card-title">&#x1F4DE; Who to Contact</div>
       <div class="contact-grid">
@@ -350,6 +428,77 @@ body.high-contrast .btn-logout{border-color:#fff}
           <div><div class="ct-label">NHS 111</div><div class="ct-val">Call 111 for urgent advice</div></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Medication Schedule Tab -->
+  <div class="tab-panel" id="panel-schedule">
+
+    <!-- First Dose Setter -->
+    <div class="first-dose-card" id="first-dose-card">
+      <div>
+        <div class="fd-label">&#x23F0; Set Your Routine</div>
+        <div class="fd-desc">Tell us when you took your first medication today so we can calculate your schedule.</div>
+      </div>
+      <input type="time" id="fd-time-input" value="08:00">
+      <button class="fd-set-btn" onclick="setFirstDose()">Set Time</button>
+      <span class="fd-status" id="fd-status"></span>
+      <a href="#" class="fd-reset" id="fd-reset" onclick="resetFirstDose();return false;" style="display:none">Reset</a>
+    </div>
+
+    <!-- Next Dose Banner -->
+    <div class="next-dose-banner" id="next-dose-banner">
+      <div class="ndb-left">
+        <div class="ndb-icon">&#x1F550;</div>
+        <div>
+          <div class="ndb-label">Next medication due</div>
+          <div class="ndb-meds" id="ndb-meds">Loading...</div>
+          <div class="ndb-note" id="ndb-note"></div>
+        </div>
+      </div>
+      <div class="ndb-countdown" id="ndb-countdown">
+        <div class="ndb-time" id="ndb-time">--</div>
+        <div class="ndb-until">until next dose</div>
+      </div>
+    </div>
+
+    <!-- Adherence Stats -->
+    <div class="adherence-strip" id="adherence-strip">
+      <div class="adh-stat"><div class="adh-num" id="adh-daily">&mdash;</div><div class="adh-label">Daily Medications</div></div>
+      <div class="adh-stat"><div class="adh-num" id="adh-times">&mdash;</div><div class="adh-label">Times Per Day</div></div>
+      <div class="adh-stat"><div class="adh-num" id="adh-weekly">&mdash;</div><div class="adh-label">Doses This Week</div></div>
+      <div class="adh-stat"><div class="adh-num" id="adh-rate">&mdash;</div><div class="adh-label">Adherence Rate</div></div>
+    </div>
+
+    <!-- Calendar Card -->
+    <div class="card" id="cal-card">
+      <div class="cal-toolbar">
+        <div class="cal-toolbar-left">
+          <button class="cal-today-btn" onclick="calToday()">Today</button>
+          <button class="cal-nav-btn" onclick="calNav(-1)">&#x25C0;</button>
+          <button class="cal-nav-btn" onclick="calNav(1)">&#x25B6;</button>
+          <span class="cal-title" id="cal-title"></span>
+        </div>
+        <div class="cal-view-toggle">
+          <button class="cal-view-btn active" id="btn-week" onclick="setCalView('week')">Week</button>
+          <button class="cal-view-btn" id="btn-day" onclick="setCalView('day')">Day</button>
+        </div>
+      </div>
+      <div id="cal-container"></div>
+      <div class="cal-legend" id="cal-legend"></div>
+    </div>
+
+    <!-- PRN Card -->
+    <div class="card" id="prn-card" style="display:none">
+      <div class="card-title">&#x1F48A; As-Needed Medications</div>
+      <div id="prn-list"></div>
+    </div>
+
+    <!-- Schedule Advice -->
+    <div class="advice-banner">
+      <h3>&#x2139;&#xFE0F; About your medication schedule</h3>
+      <p>This timetable is based on your prescription directions and standard NHS guidance for when each medication is usually taken. Always follow the specific instructions given by your GP or pharmacist.</p>
+      <p><strong>Do not change the time you take your medication without consulting your clinical team first.</strong></p>
     </div>
 
   </div>
@@ -401,94 +550,383 @@ body.high-contrast .btn-logout{border-color:#fff}
 <footer>PolyRisk &mdash; For demonstration purposes only. Not for clinical use. PharmAware is not liable for any damages, adverse outcomes, or loss of life arising from the use of this tool.</footer>
 
 <script>
+/* ══════════════════════════════════════
+   CONSTANTS KEPT FOR ASSESSMENT HISTORY
+   ══════════════════════════════════════ */
 const DOMAINS = ['fall','bleed','acb','qt','frailty','renal'];
 const DOMAIN_LABELS = {fall:'Fall Risk',bleed:'Bleed Risk',acb:'ACB',qt:'QT Risk',frailty:'Frailty',renal:'Renal Risk'};
 const DOMAIN_EMOJI  = {fall:'🦴',bleed:'🩸',acb:'🧠',qt:'🫀',frailty:'🧓',renal:'🫘'};
 
-// ── Risk Engine (mirrors polyrisk.html) ──
-const DRUG_DB = {
-  "alfacalcidol":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"amlodipine":{fall:2,bleed:0,acb:0,qt:0,frailty:0,renal:0},
-  "apixaban":{fall:1,bleed:3,acb:0,qt:0,frailty:1,renal:2},"aspirin":{fall:0,bleed:2,acb:0,qt:0,frailty:0,renal:2},
-  "atorvastatin":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"beclometasone":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},
-  "bisoprolol":{fall:1,bleed:0,acb:0,qt:0,frailty:0,renal:1},"carbocisteine":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},
-  "citalopram":{fall:2,bleed:1,acb:1,qt:3,frailty:1,renal:0},"clopidogrel":{fall:0,bleed:2,acb:0,qt:0,frailty:0,renal:1},
-  "digoxin":{fall:1,bleed:0,acb:0,qt:2,frailty:1,renal:3},"doxazosin":{fall:3,bleed:0,acb:0,qt:0,frailty:1,renal:0},
-  "empagliflozin":{fall:1,bleed:0,acb:0,qt:0,frailty:1,renal:2},"ezetimibe":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},
-  "ferrous sulfate":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"furosemide":{fall:2,bleed:0,acb:0,qt:1,frailty:1,renal:2},
-  "gliclazide":{fall:1,bleed:0,acb:0,qt:0,frailty:1,renal:2},"glyceryl trinitrate":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:0},
-  "indapamide":{fall:2,bleed:0,acb:0,qt:1,frailty:1,renal:2},"insulin aspart":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:1},
-  "insulin glargine":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:1},"isosorbide mononitrate":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:0},
-  "losartan":{fall:1,bleed:0,acb:0,qt:0,frailty:0,renal:2},"metformin":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:3},
-  "mirtazapine":{fall:2,bleed:0,acb:1,qt:1,frailty:1,renal:0},"montelukast":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},
-  "prednisolone":{fall:1,bleed:1,acb:0,qt:0,frailty:2,renal:0},"propranolol":{fall:1,bleed:0,acb:0,qt:0,frailty:0,renal:0},
-  "ramipril":{fall:1,bleed:0,acb:0,qt:0,frailty:0,renal:2},"rivaroxaban":{fall:1,bleed:3,acb:0,qt:0,frailty:1,renal:2},
-  "sacubitril/valsartan":{fall:2,bleed:0,acb:0,qt:0,frailty:1,renal:2},"salbutamol":{fall:0,bleed:0,acb:0,qt:1,frailty:0,renal:0},
-  "seretide":{fall:0,bleed:0,acb:0,qt:1,frailty:0,renal:0},"sertraline":{fall:2,bleed:1,acb:1,qt:1,frailty:1,renal:0},
-  "simvastatin":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"sitagliptin":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:1},
-  "sodium bicarbonate":{fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0},"spironolactone":{fall:1,bleed:0,acb:0,qt:1,frailty:0,renal:2},
-  "ticagrelor":{fall:0,bleed:2,acb:0,qt:0,frailty:0,renal:1},"tiotropium":{fall:0,bleed:0,acb:1,qt:0,frailty:0,renal:0},
-  "warfarin":{fall:1,bleed:3,acb:0,qt:0,frailty:1,renal:1}
-};
-const HIST_MOD = {
-  fall:{FALLS_HX:3,OSTEOPOROSIS:2,STROKE:2,PARKINSON:2,DEMENTIA:1,FRAILTY:2},
-  bleed:{BLEEDING_HX:3,PEPTIC_ULCER:2,THROMBOCYTOPENIA:2,CKD3:1,CKD4:2},
-  acb:{DEMENTIA:2,GLAUCOMA:1},
-  qt:{QT_PROLONGED_HX:3,AF:1,HF:1},
-  frailty:{FRAILTY:3,DEMENTIA:2,FALLS_HX:1},
-  renal:{CKD3:2,CKD4:4,CKD5:6,DIABETES:1,T2DM:1,HF:1,HYPERTENSION:1}
-};
-const DOMAIN_RAW_MAX = {fall:15,bleed:12,acb:15,qt:12,frailty:15,renal:15};
-
-function calcRiskFromPatient(p) {
-  const medsRaw = (p.current_repeat_medications || '').split(';').map(s=>s.trim()).filter(Boolean);
-  const tags = (p.long_term_conditions || '').split(';').map(s=>s.trim().toUpperCase()).filter(Boolean);
-  const age = p.date_of_birth ? (new Date().getFullYear() - new Date(p.date_of_birth).getFullYear()) : 75;
-  const egfr = parseFloat(p.latest_egfr) || 90;
-
-  // Drug scores
-  const rawDrug = {fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0};
-  medsRaw.forEach(ms => {
-    let name = ms.replace(/\b(tablets?|capsules?|inhaler|solution|spray|liquid)\b/gi,'')
-                 .replace(/\d+(\.\d+)?\s*(mg|micrograms|units\/ml|g|nanogram)?/gi,'').trim().toLowerCase();
-    const db = DRUG_DB[name] || Object.values(DRUG_DB)[Object.keys(DRUG_DB).findIndex(k => name.includes(k))] || null;
-    if (db) DOMAINS.forEach(d => { rawDrug[d] += db[d]; });
-  });
-
-  // History modifiers
-  const histRaw = {fall:0,bleed:0,acb:0,qt:0,frailty:0,renal:0};
-  DOMAINS.forEach(d => { tags.forEach(tag => { if (HIST_MOD[d][tag]) histRaw[d] += HIST_MOD[d][tag]; }); });
-
-  // Age modifier
-  let ageMod = age >= 85 ? 3 : age >= 75 ? 2 : age >= 65 ? 1 : 0;
-  rawDrug.fall += ageMod; rawDrug.frailty += ageMod;
-
-  // eGFR modifier
-  let egfrMod = egfr >= 90 ? 0 : egfr >= 60 ? 1 : egfr >= 45 ? 2 : egfr >= 30 ? 3 : egfr >= 15 ? 5 : 7;
-  rawDrug.renal += egfrMod;
-
-  // Polypharmacy modifier
-  let polyMod = medsRaw.length >= 10 ? 3 : medsRaw.length >= 8 ? 2 : medsRaw.length >= 5 ? 1 : 0;
-  DOMAINS.forEach(d => { rawDrug[d] += polyMod * 0.5; });
-
-  // Final domain scores
-  const domainScores = {};
-  DOMAINS.forEach(d => {
-    domainScores[d] = parseFloat(Math.min((rawDrug[d] + histRaw[d]) / DOMAIN_RAW_MAX[d] * 10, 10).toFixed(2));
-  });
-
-  const overall = parseFloat((DOMAINS.reduce((s,d) => s + domainScores[d], 0) / DOMAINS.length).toFixed(2));
-  const riskBand = bandOf(overall).label;
-
-  return { overall_score: overall, risk_band: riskBand, domain_scores: domainScores, medications: medsRaw };
-}
-
 function bandOf(score) {
-  if (score < 3) return {label:'LOW',    color:'#007F3B', bg:'rgba(0,127,59,.1)'};
+  if (score < 3) return {label:'LOW',color:'#007F3B',bg:'rgba(0,127,59,.1)'};
   if (score < 6) return {label:'MODERATE',color:'#FF8C00',bg:'rgba(255,140,0,.1)'};
-  if (score < 8) return {label:'HIGH',   color:'#DA291C', bg:'rgba(218,41,28,.1)'};
-  return           {label:'CRITICAL',   color:'#8C1A6A', bg:'rgba(140,26,106,.1)'};
+  if (score < 8) return {label:'HIGH',color:'#DA291C',bg:'rgba(218,41,28,.1)'};
+  return {label:'CRITICAL',color:'#8C1A6A',bg:'rgba(140,26,106,.1)'};
 }
 
+/* ══════════════════════════════════════
+   MEDICATION SCHEDULE ENGINE
+   ══════════════════════════════════════ */
+const SCHEDULE_DB = {
+  "warfarin":       {time:'evening', note:'Take at the same time each evening'},
+  "bisoprolol":     {time:'morning', note:'Take with breakfast'},
+  "ramipril":       {time:'morning', note:'Take with breakfast'},
+  "furosemide":     {time:'morning', note:'Take in the morning (diuretic — avoid evening)'},
+  "metformin":      {time:'twice',   note:'Take with meals (breakfast & dinner)'},
+  "atorvastatin":   {time:'evening', note:'Take at night'},
+  "simvastatin":    {time:'evening', note:'Take at night'},
+  "amlodipine":     {time:'morning', note:'Take in the morning'},
+  "losartan":       {time:'morning', note:'Take in the morning'},
+  "apixaban":       {time:'twice',   note:'Take one in the morning and one in the evening'},
+  "rivaroxaban":    {time:'morning', note:'Take with food in the morning'},
+  "citalopram":     {time:'morning', note:'Take in the morning'},
+  "sertraline":     {time:'morning', note:'Take in the morning'},
+  "mirtazapine":    {time:'evening', note:'Take at bedtime'},
+  "digoxin":        {time:'morning', note:'Take in the morning'},
+  "spironolactone": {time:'morning', note:'Take with breakfast'},
+  "indapamide":     {time:'morning', note:'Take in the morning'},
+  "doxazosin":      {time:'evening', note:'Take at bedtime (may cause dizziness)'},
+  "gliclazide":     {time:'twice',   note:'Take with breakfast and dinner'},
+  "empagliflozin":  {time:'morning', note:'Take in the morning'},
+  "prednisolone":   {time:'morning', note:'Take in the morning with food'},
+  "aspirin":        {time:'morning', note:'Take with breakfast'},
+  "clopidogrel":    {time:'morning', note:'Take in the morning'},
+  "salbutamol":     {time:'prn',     note:'Use as needed for breathlessness'},
+  "beclometasone":  {time:'twice',   note:'Use morning and evening'},
+  "tiotropium":     {time:'morning', note:'Use once daily in the morning'},
+  "montelukast":    {time:'evening', note:'Take at bedtime'},
+  "insulin aspart": {time:'three',   note:'Inject before meals (breakfast, lunch, dinner)'},
+  "insulin glargine":{time:'evening',note:'Inject at the same time each evening'}
+};
+
+const DEFAULT_TIME_MAP = {
+  morning: [{hour:8,  min:0, label:'08:00'}],
+  evening: [{hour:21, min:0, label:'21:00'}],
+  twice:   [{hour:8,  min:0, label:'08:00'}, {hour:19, min:0, label:'19:00'}],
+  three:   [{hour:8,  min:0, label:'08:00'}, {hour:13, min:0, label:'13:00'}, {hour:21, min:0, label:'21:00'}],
+  prn:     []
+};
+
+const COLOR_CLASSES = ['blue','teal','amber','red','purple','green','indigo','pink'];
+const COLOR_BORDERS = {
+  blue:'#1565C0',teal:'#00695C',amber:'#E65100',red:'#B71C1C',
+  purple:'#6A1B9A',green:'#2E7D32',indigo:'#283593',pink:'#AD1457'
+};
+
+const DEFAULT_FIRST_DOSE = 480; // 08:00 in minutes
+let currentPatientId = '';
+let scheduleEntries = [];
+let calView = 'week';
+let viewDate = new Date();
+let countdownInterval = null;
+let TIME_MAP = {};
+
+function fdKey() { return 'pp_first_dose_' + currentPatientId; }
+
+function getFirstDoseMinutes() {
+  const saved = localStorage.getItem(fdKey());
+  if (saved) {
+    const parts = saved.split(':').map(Number);
+    return parts[0] * 60 + parts[1];
+  }
+  return DEFAULT_FIRST_DOSE;
+}
+
+function getOffset() {
+  return getFirstDoseMinutes() - DEFAULT_FIRST_DOSE;
+}
+
+function applyOffset(defaults) {
+  const offset = getOffset();
+  const adjusted = {};
+  for (const key in defaults) {
+    if (key === 'prn') { adjusted.prn = []; continue; }
+    adjusted[key] = defaults[key].map(function(slot) {
+      let totalMin = slot.hour * 60 + (slot.min || 0) + offset;
+      totalMin = Math.max(360, Math.min(1439, totalMin));
+      const newH = Math.floor(totalMin / 60);
+      const newM = totalMin % 60;
+      const label = String(newH).padStart(2,'0') + ':' + String(newM).padStart(2,'0');
+      return {hour: newH, min: newM, label: label};
+    });
+  }
+  return adjusted;
+}
+
+function lookupSchedule(name) {
+  const lower = name.toLowerCase();
+  if (SCHEDULE_DB[lower]) return SCHEDULE_DB[lower];
+  for (var key of Object.keys(SCHEDULE_DB)) {
+    if (lower.includes(key)) return SCHEDULE_DB[key];
+  }
+  return {time:'morning', note:'Take as directed by your prescriber'};
+}
+
+function buildSchedule(medsRaw) {
+  var entries = [];
+  medsRaw.forEach(function(medStr, i) {
+    var parsed = parseDrugString(medStr);
+    var match = lookupSchedule(parsed.name);
+    entries.push({
+      name: parsed.name,
+      dose: parsed.dose,
+      timeKey: match.time,
+      note: match.note,
+      color: COLOR_CLASSES[i % COLOR_CLASSES.length]
+    });
+  });
+  return entries;
+}
+
+/* ── Calendar helpers ── */
+function getWeekStart(d) {
+  var date = new Date(d);
+  var day = date.getDay();
+  var diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  date.setHours(0,0,0,0);
+  return date;
+}
+
+var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var DAY_SHORT = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+
+function formatCalTitle() {
+  if (calView === 'day') {
+    return DAY_NAMES[viewDate.getDay()] + ', ' + viewDate.getDate() + ' ' + MONTH_NAMES[viewDate.getMonth()] + ' ' + viewDate.getFullYear();
+  }
+  var ws = getWeekStart(viewDate);
+  var we = new Date(ws);
+  we.setDate(we.getDate() + 6);
+  if (ws.getMonth() === we.getMonth()) {
+    return ws.getDate() + ' – ' + we.getDate() + ' ' + MONTH_NAMES[ws.getMonth()] + ' ' + ws.getFullYear();
+  }
+  return ws.getDate() + ' ' + MONTH_NAMES[ws.getMonth()].slice(0,3) + ' – ' + we.getDate() + ' ' + MONTH_NAMES[we.getMonth()].slice(0,3) + ' ' + we.getFullYear();
+}
+
+function calToday() { viewDate = new Date(); renderCalendar(); }
+
+function calNav(dir) {
+  if (calView === 'week') viewDate.setDate(viewDate.getDate() + dir * 7);
+  else viewDate.setDate(viewDate.getDate() + dir);
+  renderCalendar();
+}
+
+function setCalView(v) {
+  calView = v;
+  document.getElementById('btn-week').classList.toggle('active', v === 'week');
+  document.getElementById('btn-day').classList.toggle('active', v === 'day');
+  renderCalendar();
+}
+
+function eventsAtHour(h) {
+  var result = [];
+  scheduleEntries.forEach(function(entry) {
+    if (entry.timeKey === 'prn') return;
+    var slots = TIME_MAP[entry.timeKey] || [];
+    slots.forEach(function(slot) {
+      if (slot.hour === h) {
+        result.push({entry: entry, slot: slot});
+      }
+    });
+  });
+  return result;
+}
+
+function renderCalendar() {
+  var container = document.getElementById('cal-container');
+  document.getElementById('cal-title').textContent = formatCalTitle();
+  if (calView === 'week') renderWeekView(container);
+  else renderDayView(container);
+}
+
+function renderWeekView(container) {
+  var ws = getWeekStart(viewDate);
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  var html = '<div class="cal-scroll"><div class="cal-grid-week">';
+  html += '<div class="cal-corner"></div>';
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(ws);
+    d.setDate(d.getDate() + i);
+    var isToday = d.getTime() === today.getTime();
+    html += '<div class="cal-day-hdr">' + DAY_SHORT[i] +
+      '<span class="cal-hdr-num' + (isToday ? ' today' : '') + '">' + d.getDate() + '</span></div>';
+  }
+
+  for (var h = 6; h <= 22; h++) {
+    var label = String(h).padStart(2,'0') + ':00';
+    html += '<div class="cal-time">' + label + '</div>';
+    var evts = eventsAtHour(h);
+    for (var di = 0; di < 7; di++) {
+      html += '<div class="cal-cell">';
+      evts.forEach(function(ev) {
+        html += '<div class="med-ev med-ev-' + ev.entry.color + '">' +
+          '<span class="med-ev-time">' + ev.slot.label + '</span> ' +
+          ev.entry.name + (ev.entry.dose ? ' ' + ev.entry.dose : '') +
+          '</div>';
+      });
+      html += '</div>';
+    }
+  }
+
+  html += '</div></div>';
+  container.innerHTML = html;
+}
+
+function renderDayView(container) {
+  var html = '<div class="cal-grid-day">';
+  for (var h = 6; h <= 22; h++) {
+    var label = String(h).padStart(2,'0') + ':00';
+    html += '<div class="cal-time">' + label + '</div>';
+    html += '<div class="cal-cell">';
+    var evts = eventsAtHour(h);
+    evts.forEach(function(ev) {
+      html += '<div class="med-ev med-ev-' + ev.entry.color + '">' +
+        '<span class="med-ev-time">' + ev.slot.label + '</span> ' +
+        ev.entry.name + (ev.entry.dose ? ' ' + ev.entry.dose : '') +
+        '<span class="med-ev-note">' + ev.entry.note + '</span>' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderLegend() {
+  document.getElementById('cal-legend').innerHTML = scheduleEntries
+    .filter(function(e) { return e.timeKey !== 'prn'; })
+    .map(function(e) {
+      return '<div class="cal-legend-item">' +
+        '<span class="cal-legend-dot" style="background:' + COLOR_BORDERS[e.color] + '"></span>' +
+        e.name + (e.dose ? ' ' + e.dose : '') + '</div>';
+    }).join('');
+}
+
+function renderPRN() {
+  var prnMeds = scheduleEntries.filter(function(e) { return e.timeKey === 'prn'; });
+  var card = document.getElementById('prn-card');
+  if (!prnMeds.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  document.getElementById('prn-list').innerHTML = prnMeds.map(function(e) {
+    return '<div class="prn-item">' +
+      '<div class="prn-name">&#x1F48A; ' + e.name + (e.dose ? ' ' + e.dose : '') + '</div>' +
+      '<div class="prn-note">' + e.note + '</div></div>';
+  }).join('');
+}
+
+function updateAdherenceStats() {
+  var scheduled = scheduleEntries.filter(function(e) { return e.timeKey !== 'prn'; });
+  var timeSet = new Set();
+  var dailyDoses = 0;
+  scheduled.forEach(function(e) {
+    var slots = TIME_MAP[e.timeKey] || [];
+    slots.forEach(function(s) { timeSet.add(s.label); });
+    dailyDoses += slots.length;
+  });
+  document.getElementById('adh-daily').textContent = scheduled.length;
+  document.getElementById('adh-times').textContent = timeSet.size;
+  document.getElementById('adh-weekly').textContent = dailyDoses * 7;
+  document.getElementById('adh-rate').textContent = '—';
+}
+
+function updateNextDose() {
+  var now = new Date();
+  var currentMin = now.getHours() * 60 + now.getMinutes();
+
+  // Build grouped time slots
+  var timeSlots = {};
+  scheduleEntries.forEach(function(entry) {
+    if (entry.timeKey === 'prn') return;
+    var slots = TIME_MAP[entry.timeKey] || [];
+    slots.forEach(function(slot) {
+      var key = slot.hour * 60 + slot.min;
+      if (!timeSlots[key]) timeSlots[key] = {min: key, label: slot.label, meds: []};
+      timeSlots[key].meds.push(entry);
+    });
+  });
+
+  var sorted = Object.values(timeSlots).sort(function(a, b) { return a.min - b.min; });
+
+  if (!sorted.length) {
+    document.getElementById('ndb-meds').textContent = 'No scheduled doses';
+    document.getElementById('ndb-note').textContent = 'Use medications as needed';
+    document.getElementById('ndb-time').textContent = '—';
+    return;
+  }
+
+  var next = null;
+  var isTomorrow = false;
+  for (var i = 0; i < sorted.length; i++) {
+    if (sorted[i].min > currentMin) { next = sorted[i]; break; }
+  }
+  if (!next) { next = sorted[0]; isTomorrow = true; }
+
+  var medNames = next.meds.map(function(m) { return m.name + (m.dose ? ' ' + m.dose : ''); }).join(', ');
+  document.getElementById('ndb-meds').textContent = medNames;
+
+  if (isTomorrow) {
+    document.getElementById('ndb-note').textContent = 'Next dose tomorrow at ' + next.label;
+  } else {
+    document.getElementById('ndb-note').textContent = 'Today at ' + next.label + ' — ' + next.meds[0].note;
+  }
+
+  var diffMin;
+  if (isTomorrow) diffMin = (1440 - currentMin) + next.min;
+  else diffMin = next.min - currentMin;
+
+  var hours = Math.floor(diffMin / 60);
+  var mins = diffMin % 60;
+  document.getElementById('ndb-time').textContent = hours + 'h ' + mins + 'm';
+}
+
+function setFirstDose() {
+  var val = document.getElementById('fd-time-input').value;
+  if (!val) return;
+  localStorage.setItem(fdKey(), val);
+  TIME_MAP = applyOffset(DEFAULT_TIME_MAP);
+  document.getElementById('fd-status').textContent = '✓ Schedule adjusted to start at ' + val;
+  document.getElementById('fd-reset').style.display = '';
+  rebuildScheduleUI();
+}
+
+function resetFirstDose() {
+  localStorage.removeItem(fdKey());
+  document.getElementById('fd-time-input').value = '08:00';
+  document.getElementById('fd-status').textContent = 'Using default schedule (08:00)';
+  document.getElementById('fd-reset').style.display = 'none';
+  TIME_MAP = applyOffset(DEFAULT_TIME_MAP);
+  rebuildScheduleUI();
+}
+
+function rebuildScheduleUI() {
+  renderCalendar();
+  updateNextDose();
+  updateAdherenceStats();
+  renderLegend();
+}
+
+function initSchedule(medsRaw) {
+  scheduleEntries = buildSchedule(medsRaw);
+  var saved = localStorage.getItem(fdKey());
+  if (saved) {
+    document.getElementById('fd-time-input').value = saved;
+    document.getElementById('fd-status').textContent = '✓ Schedule adjusted to start at ' + saved;
+    document.getElementById('fd-reset').style.display = '';
+  }
+  TIME_MAP = applyOffset(DEFAULT_TIME_MAP);
+  rebuildScheduleUI();
+  renderPRN();
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(updateNextDose, 60000);
+}
+
+/* ══════════════════════════════════════
+   SHARED UTILITIES
+   ══════════════════════════════════════ */
 function calcAge(dob) {
   if (!dob) return '—';
   return new Date().getFullYear() - new Date(dob).getFullYear();
@@ -500,8 +938,8 @@ function fmt(d, opts) {
 }
 
 function switchTab(tab, btn) {
-  document.querySelectorAll('.hero-tab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.hero-tab').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
   btn.classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
 }
@@ -512,36 +950,38 @@ function logout() {
 }
 
 function parseDrugString(s) {
-  const rx = /^([a-zA-Z\s\-\/]+)\s*(\d+(?:\.\d+)?)\s*(mg|micrograms|units\/ml|g|nanogram)?/i;
-  const m = s.match(rx);
+  var rx = /^([a-zA-Z\s\-\/]+)\s*(\d+(?:\.\d+)?)\s*(mg|micrograms|units\/ml|g|nanogram)?/i;
+  var m = s.match(rx);
   if (m) return {name: m[1].trim(), dose: m[2] + ' ' + (m[3] || 'mg')};
   return {name: s.replace(/\b(tablets?|capsules?|inhaler|solution)\b/gi,'').trim(), dose:''};
 }
 
+/* ══════════════════════════════════════
+   INIT
+   ══════════════════════════════════════ */
 async function init() {
-  const raw = sessionStorage.getItem('patient_auth');
+  var raw = sessionStorage.getItem('patient_auth');
   if (!raw) { window.location.replace('./index.html'); return; }
+  var p = JSON.parse(raw);
+  currentPatientId = p.patient_id;
 
-  // Patient data was loaded from Supabase at login and stored in sessionStorage
-  const p = JSON.parse(raw);
-
-  // Fetch assessment history from Supabase (non-blocking, with timeout)
-  let assessments = null;
+  // Fetch assessment history from Supabase
+  var assessments = null;
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const { data } = await supabase
+    var controller = new AbortController();
+    var timeout = setTimeout(function() { controller.abort(); }, 5000);
+    var res = await supabase
       .from('assessments')
       .select('*')
       .eq('patient_id', p.patient_id)
-      .order('assessed_at', { ascending: false })
+      .order('assessed_at', {ascending: false})
       .abortSignal(controller.signal);
     clearTimeout(timeout);
-    assessments = data;
-  } catch (_) { /* Supabase unavailable or timed out — show page without assessments */ }
+    assessments = res.data;
+  } catch (_) {}
 
   // Header & hero
-  const name = p.name || ('Patient ' + p.patient_id);
+  var name = p.name || ('Patient ' + p.patient_id);
   document.getElementById('header-user').textContent = name;
   document.getElementById('hero-name').textContent = name;
   document.getElementById('hero-sub').textContent =
@@ -559,20 +999,20 @@ async function init() {
     {l:'Smoking Status', v: p.smoking_status || '—'},
     {l:'Allergies',      v: p.allergies || 'None recorded'},
     {l:'Last Review',    v: fmt(p.last_review_date)},
-  ].map(i => '<div class="pi"><div class="pi-l">' + i.l + '</div><div class="pi-v">' + i.v + '</div></div>').join('');
+  ].map(function(i) { return '<div class="pi"><div class="pi-l">' + i.l + '</div><div class="pi-v">' + i.v + '</div></div>'; }).join('');
 
   // Conditions
-  const conds = (p.long_term_conditions || '').split(';').map(s=>s.trim()).filter(Boolean);
+  var conds = (p.long_term_conditions || '').split(';').map(function(s){return s.trim();}).filter(Boolean);
   if (conds.length) {
-    document.getElementById('conditions-wrap').innerHTML = conds.map(c=>'<span class="tag-chip">'+c+'</span>').join('');
-    document.getElementById('conditions-card').style.display='';
+    document.getElementById('conditions-wrap').innerHTML = conds.map(function(c){return '<span class="tag-chip">'+c+'</span>';}).join('');
+    document.getElementById('conditions-card').style.display = '';
   }
 
   // Medications
-  const medsRaw = (p.current_repeat_medications || '').split(';').map(s=>s.trim()).filter(Boolean);
+  var medsRaw = (p.current_repeat_medications || '').split(';').map(function(s){return s.trim();}).filter(Boolean);
   if (medsRaw.length) {
-    document.getElementById('med-grid').innerHTML = medsRaw.map(m => {
-      const d = parseDrugString(m);
+    document.getElementById('med-grid').innerHTML = medsRaw.map(function(m) {
+      var d = parseDrugString(m);
       return '<div class="med-card">' +
         '<div class="mc-icon">&#x1F48A;</div>' +
         '<div><div class="mc-name">' + d.name + '</div>' +
@@ -583,61 +1023,26 @@ async function init() {
     document.getElementById('med-grid').innerHTML = '<div class="empty"><div class="ei">&#x1F48A;</div><p>No medications on record</p></div>';
   }
 
-  // Auto-calculate risk from patient data if no saved assessments
-  const autoCalc = calcRiskFromPatient(p);
-  const effectiveAssessments = (assessments && assessments.length > 0) ? assessments : [autoCalc];
-  const isAutoCalc = !(assessments && assessments.length > 0);
+  // Initialize Medication Schedule
+  initSchedule(medsRaw);
 
-  // Latest score
-  if (true) {
-    const latest = effectiveAssessments[0];
-    const band = bandOf(latest.overall_score);
-    document.getElementById('sg-num').textContent = latest.overall_score;
-    document.getElementById('score-gauge').style.borderColor = band.color + '80';
-    document.getElementById('score-band').textContent = band.label;
-    document.getElementById('score-band').style.background = band.color + '33';
-    if (isAutoCalc) {
-      document.getElementById('score-date').textContent = 'Auto-calculated from your current medications';
-    } else {
-      document.getElementById('score-date').textContent = 'As of ' + fmt(latest.assessed_at, {day:'2-digit',month:'short',year:'numeric'});
-    }
-    const medCount = latest.medications?.length || medsRaw.length || '—';
-    document.getElementById('score-meta').innerHTML =
-      '<span>&#x1F48A; ' + medCount + ' meds</span>' +
-      '<span>&#x1F9D1;&#x200D;&#x2695;&#xFE0F; ' + (isAutoCalc ? 'Auto-calculated' : (latest.clinician_email?.split('@')[0] || 'Clinical team')) + '</span>';
-
-    // Domain tiles
-    if (latest.domain_scores) {
-      document.getElementById('domain-grid').innerHTML = DOMAINS.map(d => {
-        const score = latest.domain_scores[d] ?? 0;
-        const b = bandOf(score);
-        return '<div class="domain-tile" style="border-left-color:' + b.color + ';background:' + b.bg + '">' +
-          '<div class="dt-name">' + DOMAIN_EMOJI[d] + ' ' + DOMAIN_LABELS[d] + '</div>' +
-          '<div class="dt-score" style="color:' + b.color + '">' + score.toFixed(1) + '</div>' +
-          '<div class="dt-band" style="color:' + b.color + '">' + b.label + '</div>' +
-          '<div class="dt-bar"><div class="dt-fill" style="width:' + (score*10) + '%;background:' + b.color + '"></div></div>' +
-        '</div>';
-      }).join('');
-    }
-  }
-
-  // Timeline
-  const tl = document.getElementById('timeline');
+  // Timeline (assessment history)
+  var tl = document.getElementById('timeline');
   if (!assessments || !assessments.length) {
-    tl.innerHTML = '<div class="empty"><div class="ei">&#x1F4CB;</div><p>No clinician assessments on record yet.<br>The score above is auto-calculated from your current medications.</p></div>';
+    tl.innerHTML = '<div class="empty"><div class="ei">&#x1F4CB;</div><p>No clinician assessments on record yet.</p></div>';
   } else {
-    tl.innerHTML = assessments.map((a, i) => {
-      const band = bandOf(a.overall_score);
-      const dateStr = fmt(a.assessed_at, {day:'2-digit',month:'short',year:'numeric'});
-      const timeStr = new Date(a.assessed_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      const domains = a.domain_scores ? DOMAINS.map(d => {
-        const v = a.domain_scores[d] ?? 0;
-        const b = bandOf(v);
+    tl.innerHTML = assessments.map(function(a, i) {
+      var band = bandOf(a.overall_score);
+      var dateStr = fmt(a.assessed_at, {day:'2-digit',month:'short',year:'numeric'});
+      var timeStr = new Date(a.assessed_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      var domains = a.domain_scores ? DOMAINS.map(function(d) {
+        var v = a.domain_scores[d] || 0;
+        var b = bandOf(v);
         return '<span class="tl-dp" style="background:' + b.bg + ';color:' + b.color + '">' +
           DOMAIN_LABELS[d] + ' ' + v.toFixed(1) + '</span>';
       }).join('') : '';
       return '<div class="tl-item">' +
-        '<div class="tl-dot" style="background:' + band.color + ';box-shadow-color:' + band.color + '"></div>' +
+        '<div class="tl-dot" style="background:' + band.color + '"></div>' +
         '<div class="tl-card">' +
           '<div class="tl-header">' +
             '<div>' +
@@ -656,28 +1061,30 @@ async function init() {
   }
 }
 
-// ── Accessibility ──
+/* ══════════════════════════════════════
+   ACCESSIBILITY
+   ══════════════════════════════════════ */
 function toggleDark() {
-  const on = document.body.classList.toggle('dark-mode');
+  var on = document.body.classList.toggle('dark-mode');
   localStorage.setItem('pp_dark', on ? '1' : '');
   document.getElementById('btn-dark').classList.toggle('active', on);
 }
 function toggleContrast() {
-  const on = document.body.classList.toggle('high-contrast');
+  var on = document.body.classList.toggle('high-contrast');
   localStorage.setItem('pp_contrast', on ? '1' : '');
   document.getElementById('btn-contrast').classList.toggle('active', on);
 }
 function adjustFont(delta) {
-  const current = parseFloat(document.documentElement.style.fontSize) ||
-                  parseFloat(getComputedStyle(document.documentElement).fontSize);
-  const next = Math.min(28, Math.max(14, current + delta));
+  var current = parseFloat(document.documentElement.style.fontSize) ||
+                parseFloat(getComputedStyle(document.documentElement).fontSize);
+  var next = Math.min(28, Math.max(14, current + delta));
   document.documentElement.style.fontSize = next + 'px';
   localStorage.setItem('pp_fontsize', next);
 }
 document.addEventListener('DOMContentLoaded', function() {
   if (localStorage.getItem('pp_dark')) { document.body.classList.add('dark-mode'); document.getElementById('btn-dark').classList.add('active'); }
   if (localStorage.getItem('pp_contrast')) { document.body.classList.add('high-contrast'); document.getElementById('btn-contrast').classList.add('active'); }
-  const fs = localStorage.getItem('pp_fontsize');
+  var fs = localStorage.getItem('pp_fontsize');
   if (fs) document.documentElement.style.fontSize = fs + 'px';
 });
 

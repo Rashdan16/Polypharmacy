@@ -1,5 +1,22 @@
 # Changelog
 
+## [2026-03-11] - Add Medication Schedule tab & remove risk data from Patient Portal
+- **Removed** from Overview tab: score card (risk gauge), domain breakdown grid, overview-grid layout, "Understanding your risk score" advice banner, and all related JS (`calcRiskFromPatient()`, `DRUG_DB`, `HIST_MOD`, `DOMAIN_RAW_MAX`). Overview now shows only the contacts card.
+- **Added** new "Medication Schedule" tab between Overview and Medications with:
+  - First Dose Time Setter — patient can anchor their schedule to a custom start time, persisted to localStorage per patient ID. All times shift by the offset from 08:00 default.
+  - Next Dose Banner — teal gradient card showing next medication, time, instruction, and a live countdown (updates every 60s). Handles "all doses passed" → shows tomorrow's first dose.
+  - Adherence Summary Strip — 4-stat grid: daily medications, times per day, weekly doses, adherence rate (placeholder).
+  - Google Calendar-style weekly timetable — CSS Grid (60px time col + 7 day cols), hours 06:00–22:00, colour-coded medication event chips with hover effects. Day/Week toggle, Today button, arrow navigation.
+  - Day View — larger event cards with instruction notes.
+  - Legend — colour dots for each medication.
+  - PRN section — "As-Needed Medications" card for drugs like salbutamol.
+  - Schedule advice banner.
+- **Schedule engine**: `SCHEDULE_DB` maps 28 common drugs to time slots (morning/evening/twice/three/prn) with NHS guidance notes. `DEFAULT_TIME_MAP` defines base hours. Offset logic shifts all times when patient sets a custom first dose.
+- **Colour coding**: 8-colour rotating palette (blue, teal, amber, red, purple, green, indigo, pink) with dark mode and high contrast overrides.
+- Assessment History tab still renders clinician-saved assessments from Supabase; shows "No clinician assessments on record yet" if none exist (no auto-calc fallback).
+- All existing features preserved: dark mode, high contrast, font controls, Supabase integration, medications tab, profile tab.
+- Files affected: `patient-portal.html`, `CHANGELOG.md`
+
 ## [2026-03-11] - Fix layout overflow at large font sizes in clinician portal
 - Left sidebar changed from fixed `340px` to `minmax(300px, 360px)` so it can shrink with large fonts
 - Added `min-width: 0` to layout children to prevent grid blowout
