@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026-03-11] - Fix layout overflow at large font sizes in clinician portal
+- Left sidebar changed from fixed `340px` to `minmax(300px, 360px)` so it can shrink with large fonts
+- Added `min-width: 0` to layout children to prevent grid blowout
+- Patient details form grid changed from rigid `1fr 1fr` to `repeat(auto-fit, minmax(120px, 1fr))` so fields wrap gracefully instead of overflowing
+- Files affected: `polyrisk.html`
+
 ## [2026-03-11] - Bump font size to 20px + patient portal accessibility controls
 - Increased base font size to 20px across all three pages (index.html, polyrisk.html, patient-portal.html)
 - Added accessibility toolbar to patient portal header: dark mode (🌙), high contrast (◑), font decrease (A−), font increase (A+)

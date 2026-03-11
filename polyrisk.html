@@ -109,8 +109,9 @@ body.high-contrast .score-circle{border:3px solid #fff}
 body.high-contrast .band-badge{border:1px solid #fff}
 
 /* ── Layout ── */
-.layout{display:grid;grid-template-columns:340px 1fr;gap:18px;padding:18px;max-width:1400px;margin:0 auto}
+.layout{display:grid;grid-template-columns:minmax(300px,360px) 1fr;gap:18px;padding:18px;max-width:1400px;margin:0 auto}
 @media(max-width:900px){.layout{grid-template-columns:1fr}}
+.layout > *{min-width:0}
 
 /* ── Cards ── */
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:16px;margin-bottom:0}
@@ -129,7 +130,7 @@ body.high-contrast .band-badge{border:1px solid #fff}
 .search-sub{font-size:.72rem;color:var(--text-muted);margin-top:6px}
 
 /* Form fields */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
 .form-group{display:flex;flex-direction:column;gap:3px}
 .form-group label{font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.4px}
 .form-group input,.form-group select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:.88rem;outline:none;transition:border .2s}
