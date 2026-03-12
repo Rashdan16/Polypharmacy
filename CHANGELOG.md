@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026-03-12] - Add accessibility options to login page
+- Added dark mode, high contrast, and font size (A− / A+) buttons to the top bar on the login page, matching the patient portal
+- Dark mode and high contrast CSS rules added for all login page elements (cards, inputs, forms, footer, demo hints)
+- Uses the same `pp_dark`, `pp_contrast`, `pp_fontsize` localStorage keys so preferences persist when navigating between login and portal
+- Files affected: `index.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Enlarge and bold Patient Notes text and Emergency 999 button
 - Increased font sizes and added bold weight across the notes section: textarea, save button, saved message, timestamp, and description text
 - Emergency 999 button enlarged from 68px to 100px diameter, with bigger phone icon (2rem) and number text (1.3rem), plus larger label

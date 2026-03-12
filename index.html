@@ -148,6 +148,53 @@ main{
 
 /* Footer */
 footer{text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted);background:var(--bg)}
+
+/* ── Accessibility bar ── */
+.a11y-bar{display:flex;align-items:center;gap:6px;margin-left:auto}
+.a11y-btn{
+  background:rgba(255,255,255,.15);color:#fff;
+  border:1px solid rgba(255,255,255,.3);
+  padding:6px 11px;border-radius:8px;font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:background .2s,border-color .2s;line-height:1;
+  display:flex;align-items:center;justify-content:center;min-width:36px;
+}
+.a11y-btn:hover{background:rgba(255,255,255,.28)}
+.a11y-btn.active{background:rgba(255,255,255,.35);border-color:rgba(255,255,255,.7)}
+
+/* ── Dark mode ── */
+body.dark-mode{
+  --bg:#111827;--card:#1F2937;--text:#F9FAFB;--text-muted:#9CA3AF;--border:#374151;
+}
+body.dark-mode .top-bar{background:linear-gradient(135deg,#001a1a,#002e30)}
+body.dark-mode footer{background:var(--card);color:var(--text-muted)}
+body.dark-mode .login-header.clinician{background:linear-gradient(135deg,#001a33,#003060)}
+body.dark-mode .login-header.patient{background:linear-gradient(135deg,#001a1a,#003333)}
+body.dark-mode .form-group input{background:var(--card);color:var(--text);border-color:var(--border)}
+body.dark-mode .demo-hint{background:#1a2535;color:#9CA3AF}
+body.dark-mode .card-clinician .demo-hint{background:#1a2535;color:#9CA3AF}
+body.dark-mode .card-patient .demo-hint{background:#1a2e2e;color:#9CA3AF}
+body.dark-mode .error-msg{background:rgba(218,41,28,.12);border-color:rgba(218,41,28,.3)}
+body.dark-mode .success-msg{background:rgba(0,127,59,.12);border-color:rgba(0,127,59,.3)}
+
+/* ── High contrast ── */
+body.high-contrast{
+  --bg:#000;--card:#000;--text:#fff;--text-muted:#e0e0e0;--border:#fff;
+}
+body.high-contrast .top-bar{background:#000;border-bottom:2px solid #fff}
+body.high-contrast .login-card{border:2px solid #fff}
+body.high-contrast .login-header.clinician{background:#000;border-bottom:2px solid #fff}
+body.high-contrast .login-header.patient{background:#000;border-bottom:2px solid #fff}
+body.high-contrast .login-header h1{color:#fff}
+body.high-contrast .login-header p{color:#e0e0e0}
+body.high-contrast .role-badge{background:rgba(255,255,255,.15)!important;color:#fff!important}
+body.high-contrast .form-group input{background:#000;color:#fff;border-color:#fff}
+body.high-contrast .form-group label{color:#fff}
+body.high-contrast .btn-submit{border:2px solid #fff}
+body.high-contrast .a11y-btn{border-color:#fff;color:#fff}
+body.high-contrast .demo-hint{background:#111;color:#fff}
+body.high-contrast .demo-hint .cred{background:rgba(255,255,255,.15);color:#fff}
+body.high-contrast .toggle-link{color:#00ffff!important}
+body.high-contrast footer{background:#000;color:#e0e0e0;border-top:1px solid #fff}
 </style>
 </head>
 <body>
@@ -168,6 +215,12 @@ footer{text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted);b
     </svg>
   </div>
   <p>NHS Clinical Decision Support</p>
+  <div class="a11y-bar">
+    <button class="a11y-btn" id="btn-dark" onclick="toggleDark()" title="Dark mode">🌙</button>
+    <button class="a11y-btn" id="btn-contrast" onclick="toggleContrast()" title="High contrast">◑</button>
+    <button class="a11y-btn" onclick="adjustFont(-1)" title="Decrease text size">A−</button>
+    <button class="a11y-btn" onclick="adjustFont(1)" title="Increase text size">A+</button>
+  </div>
 </div>
 
 <main>
@@ -456,6 +509,31 @@ function parseCSVLine(line) {
 // ── Auto-redirect if already authenticated ──
 if (sessionStorage.getItem('clinician_auth')) window.location.href = './polyrisk.html';
 if (sessionStorage.getItem('patient_auth')) window.location.href = './patient-portal.html';
+
+// ── Accessibility ──
+function toggleDark() {
+  var on = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('pp_dark', on ? '1' : '');
+  document.getElementById('btn-dark').classList.toggle('active', on);
+}
+function toggleContrast() {
+  var on = document.body.classList.toggle('high-contrast');
+  localStorage.setItem('pp_contrast', on ? '1' : '');
+  document.getElementById('btn-contrast').classList.toggle('active', on);
+}
+function adjustFont(delta) {
+  var current = parseFloat(document.documentElement.style.fontSize) ||
+                parseFloat(getComputedStyle(document.documentElement).fontSize);
+  var next = Math.min(28, Math.max(14, current + delta));
+  document.documentElement.style.fontSize = next + 'px';
+  localStorage.setItem('pp_fontsize', next);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  if (localStorage.getItem('pp_dark')) { document.body.classList.add('dark-mode'); document.getElementById('btn-dark').classList.add('active'); }
+  if (localStorage.getItem('pp_contrast')) { document.body.classList.add('high-contrast'); document.getElementById('btn-contrast').classList.add('active'); }
+  var fs = localStorage.getItem('pp_fontsize');
+  if (fs) document.documentElement.style.fontSize = fs + 'px';
+});
 </script>
 </body>
 </html>
