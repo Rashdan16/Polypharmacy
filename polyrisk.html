@@ -466,16 +466,7 @@ body.dark .history-item:hover{background:rgba(0,94,184,.2)}
       <!-- Card A: Patient Summary Strip -->
       <div class="card" id="card-summary"></div>
 
-      <!-- Card: Patient Complaints & Symptoms -->
-      <div class="card" id="card-complaints" style="display:none">
-        <div class="card-title">&#x1F4CB; Patient Complaints &amp; Recorded Symptoms</div>
-        <div id="complaints-content"></div>
-      </div>
-
-      <!-- Card B: Overall Risk Assessment -->
-      <div class="card" id="card-risk"></div>
-
-      <!-- Card C: Tabbed Analysis -->
+      <!-- Card B: Tabbed Analysis (Spider Chart, Domains, Drug Attribution) -->
       <div class="card">
         <div class="tabs">
           <button class="tab-btn active" data-tab="tab-spider">&#x1F578; Spider Chart</button>
@@ -494,6 +485,15 @@ body.dark .history-item:hover{background:rgba(0,94,184,.2)}
             <tbody id="attr-tbody"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Card C: Overall Risk Assessment -->
+      <div class="card" id="card-risk"></div>
+
+      <!-- Card D: Patient Complaints & Symptoms -->
+      <div class="card" id="card-complaints" style="display:none">
+        <div class="card-title">&#x1F4CB; Patient Complaints &amp; Recorded Symptoms</div>
+        <div id="complaints-content"></div>
       </div>
 
     </div>
