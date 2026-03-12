@@ -1148,7 +1148,7 @@ function checkSymptoms() {
   btn.disabled = true;
   spinner.classList.add('visible');
   result.className = 'symptom-result';
-  result.style.display = 'none';
+  result.removeAttribute('style');
 
   var medList = _patientMeds.join(', ');
   var systemPrompt = 'You are a clinical support assistant for the NHS PharmAware system. ' +
