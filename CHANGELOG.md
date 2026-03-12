@@ -1,9 +1,7 @@
 # Changelog
 
 ## [2026-03-12] - Reorder clinician results panel cards
-- Moved Spider Chart / Tabbed Analysis card above Overall Risk Assessment
-- Moved Patient Complaints & Recorded Symptoms to the bottom of the results panel
-- New order: Patient Summary → Spider Chart/Domains/Drugs → Overall Risk Assessment → Patient Complaints
+- New order: Patient Summary → Overall Risk Assessment → Spider Chart/Domains/Drugs → Patient Complaints
 - Files affected: `polyrisk.html`, `CHANGELOG.md`
 
 ## [2026-03-12] - Fix login card header symmetry
