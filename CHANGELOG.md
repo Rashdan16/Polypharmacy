@@ -1,11 +1,11 @@
 # Changelog
 
-## [2026-03-12] - Add Patient Complaints & Symptoms section to clinician portal
-- Added a "Patient Complaints & Recorded Symptoms" card on the clinician results panel that appears after running a risk assessment
-- When a patient is loaded (via search or AI import), the system checks localStorage for notes saved by the patient through the patient portal
-- Displays the patient's written complaints/symptoms with the date and time they were recorded, along with a "Patient Recorded" badge
-- Shows an empty state message when no complaints have been recorded
-- Card is hidden on clear and supports dark mode and high contrast themes
+## [2026-03-12] - Add Patient Complaints & Symptoms table to clinician portal
+- Added structured "Patient Complaints & Recorded Symptoms" card on the clinician results panel with a proper table (Date, Time, Complaint, Severity, Recorded By)
+- Hardcoded clinical complaint data for demo patients P0001 (5 complaints) and P0002 (3 complaints) matching the medical record format
+- Severity values are colour-coded: green for Mild, orange for Moderate, red for Severe
+- Also checks localStorage for patient-submitted notes from the patient portal (displayed as "Patient (self-reported)")
+- Styled with NHS blue table header, alternating row colours, and dark mode / high contrast support
 - Files affected: `polyrisk.html`, `CHANGELOG.md`
 
 ## [2026-03-12] - Add accessibility options to login page

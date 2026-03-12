@@ -299,25 +299,32 @@ body.dark .history-modal{background:var(--card);border:1px solid var(--border)}
 body.dark .history-item{border-color:var(--border)}
 
 /* ── Patient Complaints & Symptoms ── */
-.complaint-entry{
-  background:var(--nhs-light);border:1px solid var(--border);border-left:4px solid var(--nhs-blue);
-  border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;
+.complaints-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.complaints-table thead{background:linear-gradient(135deg,var(--nhs-dark),var(--nhs-blue))}
+.complaints-table th{
+  color:#fff;font-size:.7rem;text-transform:uppercase;font-weight:700;letter-spacing:.4px;
+  padding:10px 12px;text-align:left;border:none;
 }
-.complaint-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
-.complaint-date{font-size:.78rem;font-weight:700;color:var(--nhs-blue);display:flex;align-items:center;gap:6px}
-.complaint-date .cd-icon{font-size:.9rem}
-.complaint-badge{
-  font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
-  padding:2px 10px;border-radius:12px;background:var(--nhs-blue);color:#fff;
+.complaints-table td{
+  padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;
 }
-.complaint-text{font-size:.88rem;color:var(--text);line-height:1.7;white-space:pre-wrap}
+.complaints-table tbody tr:nth-child(even){background:var(--nhs-light)}
+.complaints-table tbody tr:hover{background:rgba(0,94,184,.08)}
+.ct-date{font-weight:700;white-space:nowrap;font-size:.8rem;min-width:90px}
+.ct-time{font-weight:600;white-space:nowrap;font-size:.8rem;color:var(--nhs-blue)}
+.ct-complaint{font-size:.82rem;color:var(--text);max-width:380px}
+.ct-severity{font-weight:700;font-size:.78rem;white-space:nowrap}
+.ct-recorded{font-size:.78rem;color:var(--text-muted);white-space:nowrap}
 .complaint-empty{text-align:center;padding:20px;color:var(--text-muted);font-size:.85rem}
 .complaint-empty .ce-icon{font-size:2rem;margin-bottom:8px;display:block}
-body.dark .complaint-entry{background:rgba(0,94,184,.12);border-color:var(--border);border-left-color:#60a5fa}
-body.dark .complaint-date{color:#93c5fd}
-body.high-contrast .complaint-entry{background:#000;border:2px solid #fff;border-left:4px solid #ff0}
-body.high-contrast .complaint-date{color:#ff0}
-body.high-contrast .complaint-badge{background:#ff0;color:#000}
+body.dark .complaints-table thead{background:linear-gradient(135deg,#001a33,#003060)}
+body.dark .complaints-table td{border-color:var(--border)}
+body.dark .complaints-table tbody tr:nth-child(even){background:rgba(0,94,184,.1)}
+body.dark .ct-time{color:#60a5fa}
+body.high-contrast .complaints-table thead{background:#000;border:2px solid #fff}
+body.high-contrast .complaints-table th{color:#ff0}
+body.high-contrast .complaints-table td{border-color:#fff}
+body.high-contrast .complaints-table tbody tr:nth-child(even){background:#111}
 body.dark .history-item:hover{background:rgba(0,94,184,.2)}
 </style>
 </head>
@@ -928,45 +935,87 @@ let lastAssessmentResult = null;
 let lastAssessmentParams = {};
 
 // ── Patient Complaints & Symptoms ──
+var PATIENT_COMPLAINTS = {
+  'P0001': [
+    { date:'10 Mar 2026', time:'09:15', complaint:'Falls concern \u2013 near-miss on stairs the previous week; reports dizziness on standing, particularly in the morning. States she felt unsteady and had to grip the banister.', severity:'Moderate', recordedBy:'Dr. K. Patel' },
+    { date:'10 Mar 2026', time:'09:18', complaint:'Bilateral ankle swelling \u2013 patient reports puffiness around both ankles, worse by the evening. Has been present for approximately two weeks. Not painful but noticeable when removing footwear.', severity:'Mild', recordedBy:'Dr. K. Patel' },
+    { date:'10 Mar 2026', time:'09:22', complaint:'Persistent fatigue \u2013 patient describes low energy levels throughout the day, particularly post-lunch. Has been ongoing for several weeks. States she struggles to maintain previous levels of household activity.', severity:'Mild\u2013Moderate', recordedBy:'Dr. K. Patel' },
+    { date:'02 Feb 2026', time:'14:05', complaint:'Occasional palpitations \u2013 patient reports intermittent awareness of an irregular heartbeat, lasting a few seconds at a time. Occurs at rest and occasionally during light activity. No associated chest pain or syncope.', severity:'Mild', recordedBy:'Dr. L. Chen' },
+    { date:'05 Mar 2026', time:'10:30', complaint:'Mild shortness of breath on exertion \u2013 reports becoming breathless when climbing stairs or walking uphill. Not present at rest. Patient attributes this to reduced fitness but is concerned given her cardiac history.', severity:'Mild', recordedBy:'Phlebotomy Nurse' },
+  ],
+  'P0002': [
+    { date:'08 Mar 2026', time:'11:00', complaint:'Increased thirst and frequent urination \u2013 patient reports drinking significantly more water over the past two weeks and needing to urinate more often, including nocturia 3\u20134 times per night.', severity:'Moderate', recordedBy:'Dr. K. Patel' },
+    { date:'08 Mar 2026', time:'11:05', complaint:'Tingling in both feet \u2013 patient describes a pins-and-needles sensation in the soles of both feet, worse at night. Has been present intermittently for approximately one month.', severity:'Mild', recordedBy:'Dr. K. Patel' },
+    { date:'01 Mar 2026', time:'09:45', complaint:'Headaches \u2013 patient reports intermittent frontal headaches, mostly in the mornings. Denies visual disturbance. Blood pressure was elevated at last community pharmacy check.', severity:'Mild\u2013Moderate', recordedBy:'Practice Nurse' },
+  ]
+};
+
+function severityColor(sev) {
+  var s = (sev || '').toLowerCase();
+  if (s.indexOf('moderate') !== -1) return '#FF8C00';
+  if (s === 'mild') return '#007F3B';
+  if (s.indexOf('high') !== -1 || s.indexOf('severe') !== -1) return '#DA291C';
+  return '#637381';
+}
+
 function loadPatientComplaints(patientId) {
   var card = document.getElementById('card-complaints');
   var content = document.getElementById('complaints-content');
   if (!patientId) { card.style.display = 'none'; return; }
 
+  // 1. Check hardcoded clinical complaints
+  var complaints = PATIENT_COMPLAINTS[patientId] || [];
+
+  // 2. Also check localStorage for patient portal notes
+  var portalNotes = null;
   var key = 'patient_notes_' + patientId;
   var raw = localStorage.getItem(key);
-  if (!raw) {
+  if (raw) {
+    try {
+      var data = JSON.parse(raw);
+      if (data.text && data.text.trim()) {
+        var d = new Date(data.timestamp);
+        portalNotes = {
+          date: d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}),
+          time: d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}),
+          complaint: data.text.trim(),
+          severity: '\u2014',
+          recordedBy: 'Patient (self-reported)'
+        };
+      }
+    } catch(e) {}
+  }
+
+  if (!complaints.length && !portalNotes) {
     card.style.display = 'block';
     content.innerHTML = '<div class="complaint-empty"><span class="ce-icon">&#x1F4DD;</span>No complaints or symptoms recorded by this patient.</div>';
     return;
   }
 
-  try {
-    var data = JSON.parse(raw);
-    if (!data.text || !data.text.trim()) {
-      card.style.display = 'block';
-      content.innerHTML = '<div class="complaint-empty"><span class="ce-icon">&#x1F4DD;</span>No complaints or symptoms recorded by this patient.</div>';
-      return;
-    }
-    var d = new Date(data.timestamp);
-    var dateStr = d.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
-    var timeStr = d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-    var dayName = d.toLocaleDateString('en-GB', {weekday:'long'});
+  // Build the table
+  var allComplaints = complaints.slice();
+  if (portalNotes) allComplaints.unshift(portalNotes);
 
-    card.style.display = 'block';
-    content.innerHTML =
-      '<div class="complaint-entry">' +
-        '<div class="complaint-header">' +
-          '<div class="complaint-date"><span class="cd-icon">&#x1F4C5;</span>' + dayName + ', ' + dateStr + ' at ' + timeStr + '</div>' +
-          '<span class="complaint-badge">Patient Recorded</span>' +
-        '</div>' +
-        '<div class="complaint-text">' + escHtml(data.text) + '</div>' +
-      '</div>';
-  } catch (e) {
-    card.style.display = 'block';
-    content.innerHTML = '<div class="complaint-entry"><div class="complaint-text">' + escHtml(raw) + '</div></div>';
-  }
+  var html = '<table class="complaints-table">' +
+    '<thead><tr>' +
+      '<th>Date</th><th>Time</th><th>Complaint / Reported Symptom</th><th>Severity</th><th>Recorded By</th>' +
+    '</tr></thead><tbody>';
+
+  allComplaints.forEach(function(c) {
+    html += '<tr>' +
+      '<td class="ct-date">' + escHtml(c.date) + '</td>' +
+      '<td class="ct-time">' + escHtml(c.time) + '</td>' +
+      '<td class="ct-complaint">' + escHtml(c.complaint) + '</td>' +
+      '<td><span class="ct-severity" style="color:' + severityColor(c.severity) + '">' + escHtml(c.severity) + '</span></td>' +
+      '<td class="ct-recorded">' + escHtml(c.recordedBy) + '</td>' +
+    '</tr>';
+  });
+
+  html += '</tbody></table>';
+  card.style.display = 'block';
+  content.innerHTML = html;
 }
+
 function escHtml(s) {
   var div = document.createElement('div');
   div.textContent = s;
