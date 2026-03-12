@@ -1,5 +1,13 @@
 # Changelog
 
+## [2026-03-12] - Add Patient Complaints & Symptoms section to clinician portal
+- Added a "Patient Complaints & Recorded Symptoms" card on the clinician results panel that appears after running a risk assessment
+- When a patient is loaded (via search or AI import), the system checks localStorage for notes saved by the patient through the patient portal
+- Displays the patient's written complaints/symptoms with the date and time they were recorded, along with a "Patient Recorded" badge
+- Shows an empty state message when no complaints have been recorded
+- Card is hidden on clear and supports dark mode and high contrast themes
+- Files affected: `polyrisk.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Add accessibility options to login page
 - Added dark mode, high contrast, and font size (A− / A+) buttons to the top bar on the login page, matching the patient portal
 - Dark mode and high contrast CSS rules added for all login page elements (cards, inputs, forms, footer, demo hints)

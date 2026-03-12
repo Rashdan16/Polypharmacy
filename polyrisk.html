@@ -297,6 +297,27 @@ body.high-contrast .band-badge{border:1px solid #fff}
 .history-empty{color:var(--text-muted);font-size:.85rem;text-align:center;padding:20px}
 body.dark .history-modal{background:var(--card);border:1px solid var(--border)}
 body.dark .history-item{border-color:var(--border)}
+
+/* ── Patient Complaints & Symptoms ── */
+.complaint-entry{
+  background:var(--nhs-light);border:1px solid var(--border);border-left:4px solid var(--nhs-blue);
+  border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;
+}
+.complaint-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.complaint-date{font-size:.78rem;font-weight:700;color:var(--nhs-blue);display:flex;align-items:center;gap:6px}
+.complaint-date .cd-icon{font-size:.9rem}
+.complaint-badge{
+  font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+  padding:2px 10px;border-radius:12px;background:var(--nhs-blue);color:#fff;
+}
+.complaint-text{font-size:.88rem;color:var(--text);line-height:1.7;white-space:pre-wrap}
+.complaint-empty{text-align:center;padding:20px;color:var(--text-muted);font-size:.85rem}
+.complaint-empty .ce-icon{font-size:2rem;margin-bottom:8px;display:block}
+body.dark .complaint-entry{background:rgba(0,94,184,.12);border-color:var(--border);border-left-color:#60a5fa}
+body.dark .complaint-date{color:#93c5fd}
+body.high-contrast .complaint-entry{background:#000;border:2px solid #fff;border-left:4px solid #ff0}
+body.high-contrast .complaint-date{color:#ff0}
+body.high-contrast .complaint-badge{background:#ff0;color:#000}
 body.dark .history-item:hover{background:rgba(0,94,184,.2)}
 </style>
 </head>
@@ -437,6 +458,12 @@ body.dark .history-item:hover{background:rgba(0,94,184,.2)}
 
       <!-- Card A: Patient Summary Strip -->
       <div class="card" id="card-summary"></div>
+
+      <!-- Card: Patient Complaints & Symptoms -->
+      <div class="card" id="card-complaints" style="display:none">
+        <div class="card-title">&#x1F4CB; Patient Complaints &amp; Recorded Symptoms</div>
+        <div id="complaints-content"></div>
+      </div>
 
       <!-- Card B: Overall Risk Assessment -->
       <div class="card" id="card-risk"></div>
@@ -900,6 +927,52 @@ function runAlgorithm(meds, tags, age, egfr) {
 let lastAssessmentResult = null;
 let lastAssessmentParams = {};
 
+// ── Patient Complaints & Symptoms ──
+function loadPatientComplaints(patientId) {
+  var card = document.getElementById('card-complaints');
+  var content = document.getElementById('complaints-content');
+  if (!patientId) { card.style.display = 'none'; return; }
+
+  var key = 'patient_notes_' + patientId;
+  var raw = localStorage.getItem(key);
+  if (!raw) {
+    card.style.display = 'block';
+    content.innerHTML = '<div class="complaint-empty"><span class="ce-icon">&#x1F4DD;</span>No complaints or symptoms recorded by this patient.</div>';
+    return;
+  }
+
+  try {
+    var data = JSON.parse(raw);
+    if (!data.text || !data.text.trim()) {
+      card.style.display = 'block';
+      content.innerHTML = '<div class="complaint-empty"><span class="ce-icon">&#x1F4DD;</span>No complaints or symptoms recorded by this patient.</div>';
+      return;
+    }
+    var d = new Date(data.timestamp);
+    var dateStr = d.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+    var timeStr = d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    var dayName = d.toLocaleDateString('en-GB', {weekday:'long'});
+
+    card.style.display = 'block';
+    content.innerHTML =
+      '<div class="complaint-entry">' +
+        '<div class="complaint-header">' +
+          '<div class="complaint-date"><span class="cd-icon">&#x1F4C5;</span>' + dayName + ', ' + dateStr + ' at ' + timeStr + '</div>' +
+          '<span class="complaint-badge">Patient Recorded</span>' +
+        '</div>' +
+        '<div class="complaint-text">' + escHtml(data.text) + '</div>' +
+      '</div>';
+  } catch (e) {
+    card.style.display = 'block';
+    content.innerHTML = '<div class="complaint-entry"><div class="complaint-text">' + escHtml(raw) + '</div></div>';
+  }
+}
+function escHtml(s) {
+  var div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
 // ── Run Assessment ──
 function runAssessment() {
   const meds = getMeds();
@@ -927,6 +1000,9 @@ function runAssessment() {
   renderSpider(result);
   renderDomainGrid(result);
   renderDrugTable(result);
+
+  // Load patient complaints/symptoms from patient portal notes
+  loadPatientComplaints(nhs);
 
   // Audit
   auditLog('run_assessment', { patient_id: nhs, overall: result.overall });
@@ -1343,8 +1419,9 @@ function clearPatient() {
   const aiStatus = document.getElementById('ai-status');
   aiStatus.className = 'ai-status';
   aiStatus.textContent = '';
-  // Hide results, show empty state
+  // Hide results & complaints, show empty state
   document.getElementById('results-panel').style.display = 'none';
+  document.getElementById('card-complaints').style.display = 'none';
   document.getElementById('empty-state').style.display = '';
 }
 
