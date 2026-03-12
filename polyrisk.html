@@ -641,7 +641,7 @@ async function loadPatients() {
       if (!res.ok) throw new Error('CSV not found');
       parseCSV(await res.text());
       const sub = document.querySelector('.search-sub');
-      if (sub) sub.textContent = 'Searching ' + PATIENTS_DB.length + ' patient records (offline)...';
+      if (sub) sub.textContent = 'Searching ' + PATIENTS_DB.length + ' patient records...';
     } catch (_) {
       document.getElementById('patient-search').placeholder = 'No patient data loaded \u2014 enter details manually';
     }
