@@ -1,5 +1,15 @@
 # Changelog
 
+## [2026-03-12] - Hardcode patient logins with passwords for P0001 and P0002
+- Added password field to the patient login form
+- Added `PATIENT_USERS` object with hardcoded credentials and full patient data for P0001 and P0002
+- P0001: Margaret Thompson — ID `P0001` / password `Patient1!`
+- P0002: David Okafor — ID `P0002` / password `Patient2!`
+- Login checks hardcoded credentials first; wrong password shows "Incorrect password" error
+- Other patient IDs still fall through to Supabase then CSV fallback (no password required)
+- Demo hint on login card updated to show both sets of credentials
+- Files affected: `index.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Hardcode mock assessments for P0001 and P0002
 - Assessment history for P0001 and P0002 is now hardcoded in `patient-portal.html` as a fallback so the Assessment History tab always shows data for these demo patients
 - Supabase is still queried first — if real assessments exist in the DB they take priority; hardcoded data is only used if Supabase returns nothing

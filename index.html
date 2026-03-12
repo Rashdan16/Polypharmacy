@@ -243,15 +243,19 @@ footer{text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted);b
             <label>Patient ID</label>
             <input type="text" id="p-id" placeholder="e.g. P0001" autocomplete="off" required>
           </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="p-password" placeholder="Enter your password" required>
+          </div>
           <button class="btn-submit" type="submit">Access My Record</button>
         </form>
 
         <hr class="divider">
 
         <div class="demo-hint">
-          <strong>How to log in</strong><br>
-          Enter your Patient ID (e.g. <span class="cred">P0001</span>).<br>
-          Your record is loaded directly from the database.
+          <strong>Demo credentials</strong><br>
+          <span class="cred">P0001</span> / <span class="cred">Patient1!</span><br>
+          <span class="cred">P0002</span> / <span class="cred">Patient2!</span>
         </div>
       </div>
     </div>
@@ -267,6 +271,34 @@ const CLINICIAN_USERS = [
   { email: 'clinician@nhs.demo', password: 'Demo1234!' },
   { email: 'admin@nhs.demo',     password: 'Demo1234!' },
 ];
+
+// Hardcoded patient demo accounts
+const PATIENT_USERS = {
+  'P0001': {
+    password: 'Patient1!',
+    data: {
+      patient_id: 'P0001', name: 'Margaret Thompson',
+      date_of_birth: '1943-01-01', sex: 'F',
+      latest_egfr: 88, bmi: 27.0, smoking_status: 'Never',
+      allergies: 'Penicillin',
+      long_term_conditions: 'AF;HF;CKD3;T2DM',
+      current_repeat_medications: 'warfarin 3 mg tablets;bisoprolol 5 mg tablets;ramipril 5 mg capsules;furosemide 40 mg tablets;metformin 500 mg tablets;atorvastatin 40 mg tablets',
+      last_review_date: '2025-01-01'
+    }
+  },
+  'P0002': {
+    password: 'Patient2!',
+    data: {
+      patient_id: 'P0002', name: 'David Okafor',
+      date_of_birth: '1950-02-02', sex: 'M',
+      latest_egfr: 72, bmi: 30.0, smoking_status: 'Ex-smoker',
+      allergies: null,
+      long_term_conditions: 'T2DM;HYPERTENSION;OBESITY',
+      current_repeat_medications: 'metformin 1000 mg tablets;gliclazide 80 mg tablets;ramipril 10 mg capsules;amlodipine 5 mg tablets;atorvastatin 20 mg tablets',
+      last_review_date: '2025-02-02'
+    }
+  }
+};
 
 function showMsg(errId, sucId, type, msg) {
   document.getElementById(errId).style.display = 'none';
@@ -325,11 +357,24 @@ function handleClinicianLogin(e) {
 async function handlePatientLogin(e) {
   e.preventDefault();
   const patientId = document.getElementById('p-id').value.trim().toUpperCase();
+  const password  = document.getElementById('p-password').value;
   const btn = document.querySelector('#patient-form button[type=submit]');
   btn.disabled = true; btn.textContent = 'Signing in...';
 
+  // Check hardcoded demo credentials first
+  if (PATIENT_USERS[patientId]) {
+    if (PATIENT_USERS[patientId].password !== password) {
+      btn.disabled = false; btn.textContent = 'Access My Record';
+      showMsg('p-error-msg', 'p-success-msg', 'error', 'Incorrect password. Please try again.');
+      return;
+    }
+    sessionStorage.setItem('patient_auth', JSON.stringify(PATIENT_USERS[patientId].data));
+    window.location.href = './patient-portal.html';
+    return;
+  }
+
   try {
-    // Try Supabase first
+    // Try Supabase for other patients
     const { data, error } = await supabase
       .from('patients')
       .select('patient_id, name, date_of_birth, sex, latest_egfr, bmi, smoking_status, allergies, long_term_conditions, current_repeat_medications, last_review_date')
