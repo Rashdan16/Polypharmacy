@@ -1,5 +1,14 @@
 # Changelog
 
+## [2026-03-12] - Add Assessment Timeline to clinician results panel
+- Added an "Assessment Timeline" card at the bottom of the clinician results panel showing historical risk assessments
+- Each timeline entry displays: date/time, reviewing clinician, overall score with colour-coded risk band, and domain score chips (Fall Risk, Bleed Risk, ACB, QT Risk, Frailty, Renal Risk)
+- Hardcoded mock assessment history for P0001 (2 assessments) and P0002 (2 assessments)
+- Also fetches from Supabase if available, overriding mock data
+- Timeline styled with vertical line, coloured dots, and a "LATEST" badge on the most recent entry
+- Dark mode and high contrast support included
+- Files affected: `polyrisk.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Reorder clinician results panel cards
 - New order: Patient Summary → Overall Risk Assessment → Spider Chart/Domains/Drugs → Patient Complaints
 - Files affected: `polyrisk.html`, `CHANGELOG.md`

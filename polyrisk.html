@@ -326,6 +326,44 @@ body.high-contrast .complaints-table th{color:#ff0}
 body.high-contrast .complaints-table td{border-color:#fff}
 body.high-contrast .complaints-table tbody tr:nth-child(even){background:#111}
 body.dark .history-item:hover{background:rgba(0,94,184,.2)}
+
+/* ── Assessment Timeline ── */
+.atl{position:relative;padding-left:28px}
+.atl::before{
+  content:'';position:absolute;left:9px;top:0;bottom:0;
+  width:2px;background:var(--border);border-radius:2px;
+}
+.atl-item{position:relative;margin-bottom:20px}
+.atl-dot{
+  position:absolute;left:-28px;top:14px;
+  width:16px;height:16px;border-radius:50%;border:3px solid var(--card);
+  box-shadow:0 0 0 2px;
+}
+.atl-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 18px;box-shadow:0 1px 6px rgba(0,0,0,.05);
+}
+.atl-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
+.atl-date{font-size:.85rem;font-weight:700;color:var(--text)}
+.atl-clinician{font-size:.74rem;color:var(--text-muted);margin-top:3px}
+.atl-score-wrap{text-align:right}
+.atl-score{font-size:1.5rem;font-weight:900}
+.atl-score .atl-den{font-size:.85rem;font-weight:400;color:var(--text-muted)}
+.atl-band{display:inline-block;padding:3px 12px;border-radius:12px;font-size:.7rem;font-weight:700;color:#fff;margin-top:4px}
+.atl-domains{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.atl-dp{font-size:.72rem;padding:3px 10px;border-radius:10px;font-weight:600}
+.atl-latest{
+  background:#007F3B;color:#fff;font-size:.65rem;padding:2px 8px;
+  border-radius:10px;font-weight:700;margin-left:8px;vertical-align:middle;
+}
+.atl-empty{text-align:center;padding:20px;color:var(--text-muted);font-size:.85rem}
+body.dark .atl::before{background:var(--border)}
+body.dark .atl-card{background:var(--card);border-color:var(--border)}
+body.dark .atl-dot{border-color:var(--card)}
+body.high-contrast .atl::before{background:#fff}
+body.high-contrast .atl-card{background:#000;border:2px solid #fff}
+body.high-contrast .atl-dot{border-color:#000}
+body.high-contrast .atl-band{border:1px solid #fff}
 </style>
 </head>
 <body>
@@ -494,6 +532,12 @@ body.dark .history-item:hover{background:rgba(0,94,184,.2)}
       <div class="card" id="card-complaints" style="display:none">
         <div class="card-title">&#x1F4CB; Patient Complaints &amp; Recorded Symptoms</div>
         <div id="complaints-content"></div>
+      </div>
+
+      <!-- Card E: Assessment Timeline -->
+      <div class="card" id="card-timeline" style="display:none">
+        <div class="card-title">&#x1F4C5; Assessment Timeline</div>
+        <div class="atl" id="assessment-timeline"></div>
       </div>
 
     </div>
@@ -1029,6 +1073,105 @@ function escHtml(s) {
   return div.innerHTML;
 }
 
+// ── Assessment Timeline ──
+var MOCK_ASSESSMENTS = {
+  'P0001': [
+    {
+      clinician_email:'dr.patel@nhs.net',
+      assessed_at:'2026-02-15T10:30:00+00:00',
+      overall_score:5.82, risk_band:'MODERATE',
+      domain_scores:{fall:5.3,bleed:6.7,acb:0.3,qt:1.7,frailty:4.5,renal:6.4}
+    },
+    {
+      clinician_email:'pharmacist.jones@nhs.net',
+      assessed_at:'2025-09-20T14:15:00+00:00',
+      overall_score:5.45, risk_band:'MODERATE',
+      domain_scores:{fall:4.9,bleed:6.3,acb:0.3,qt:1.7,frailty:4.0,renal:5.5}
+    }
+  ],
+  'P0002': [
+    {
+      clinician_email:'dr.patel@nhs.net',
+      assessed_at:'2026-01-22T09:45:00+00:00',
+      overall_score:3.28, risk_band:'MODERATE',
+      domain_scores:{fall:3.5,bleed:0.8,acb:0.3,qt:0.4,frailty:2.3,renal:5.3}
+    },
+    {
+      clinician_email:'pharmacist.jones@nhs.net',
+      assessed_at:'2025-08-10T11:00:00+00:00',
+      overall_score:3.02, risk_band:'MODERATE',
+      domain_scores:{fall:3.1,bleed:0.8,acb:0.3,qt:0.4,frailty:2.0,renal:4.8}
+    }
+  ]
+};
+
+function loadAssessmentTimeline(patientId) {
+  var card = document.getElementById('card-timeline');
+  var tl = document.getElementById('assessment-timeline');
+  if (!patientId) { card.style.display = 'none'; return; }
+
+  var assessments = MOCK_ASSESSMENTS[patientId] || [];
+
+  // Also try Supabase
+  (async function() {
+    try {
+      var res = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('assessed_at', { ascending: false });
+      if (res.data && res.data.length) assessments = res.data;
+    } catch (_) {}
+    renderTimeline(assessments, card, tl);
+  })();
+
+  // Render immediately with mock data (will re-render if Supabase returns)
+  renderTimeline(assessments, card, tl);
+}
+
+function renderTimeline(assessments, card, tl) {
+  if (!assessments || !assessments.length) {
+    card.style.display = 'block';
+    tl.innerHTML = '<div class="atl-empty">&#x1F4CB; No previous assessments on record for this patient.</div>';
+    return;
+  }
+
+  card.style.display = 'block';
+  tl.innerHTML = assessments.map(function(a, i) {
+    var band = bandOf(a.overall_score);
+    var d = new Date(a.assessed_at);
+    var dateStr = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+    var timeStr = d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+
+    var domains = a.domain_scores ? DOMAINS.map(function(dk) {
+      var v = a.domain_scores[dk] || 0;
+      var b = bandOf(v);
+      var bg = v < 3 ? 'rgba(0,127,59,.1)' : v < 6 ? 'rgba(255,140,0,.1)' : v < 8 ? 'rgba(218,41,28,.1)' : 'rgba(140,26,106,.1)';
+      return '<span class="atl-dp" style="background:' + bg + ';color:' + b.hex + '">' +
+        DOMAIN_LABELS[dk] + ' ' + v.toFixed(1) + '</span>';
+    }).join('') : '';
+
+    return '<div class="atl-item">' +
+      '<div class="atl-dot" style="background:' + band.hex + ';color:' + band.hex + '"></div>' +
+      '<div class="atl-card">' +
+        '<div class="atl-header">' +
+          '<div>' +
+            '<div class="atl-date">&#x1F4C5; ' + dateStr + ' &middot; ' + timeStr +
+              (i === 0 ? '<span class="atl-latest">LATEST</span>' : '') +
+            '</div>' +
+            '<div class="atl-clinician">Reviewed by: ' + (a.clinician_email || 'Clinical team') + '</div>' +
+          '</div>' +
+          '<div class="atl-score-wrap">' +
+            '<div class="atl-score" style="color:' + band.hex + '">' + a.overall_score + '<span class="atl-den">/10</span></div>' +
+            '<div><span class="atl-band" style="background:' + band.hex + '">' + (a.risk_band || band.label) + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        (domains ? '<div class="atl-domains">' + domains + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
 // ── Run Assessment ──
 function runAssessment() {
   const meds = getMeds();
@@ -1059,6 +1202,7 @@ function runAssessment() {
 
   // Load patient complaints/symptoms from patient portal notes
   loadPatientComplaints(nhs);
+  loadAssessmentTimeline(nhs);
 
   // Audit
   auditLog('run_assessment', { patient_id: nhs, overall: result.overall });
@@ -1496,6 +1640,7 @@ function clearPatient() {
   // Hide results & complaints, show empty state
   document.getElementById('results-panel').style.display = 'none';
   document.getElementById('card-complaints').style.display = 'none';
+  document.getElementById('card-timeline').style.display = 'none';
   document.getElementById('empty-state').style.display = '';
 }
 
