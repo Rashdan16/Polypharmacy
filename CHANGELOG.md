@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026-03-12] - Add AI Symptom Checker to Medications tab
+- Added a new "Symptom Checker" card on the Medications tab where patients can describe their symptoms
+- AI (GPT-4o-mini via OpenAI API) analyses the symptoms against the patient's current repeat medications and suggests which ones may be relevant
+- Includes loading spinner, error handling, and a disclaimer that this is not a diagnosis
+- Designed to help patients prepare information for their next clinician visit
+- Files affected: `patient-portal.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Hardcode patient logins with passwords for P0001 and P0002
 - Added password field to the patient login form
 - Added `PATIENT_USERS` object with hardcoded credentials and full patient data for P0001 and P0002

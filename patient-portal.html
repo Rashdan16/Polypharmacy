@@ -113,6 +113,48 @@ body{
 .med-card .mc-name{font-size:.88rem;font-weight:700;color:var(--text);line-height:1.3}
 .med-card .mc-dose{font-size:.75rem;color:var(--text-muted);margin-top:2px}
 
+/* ── Symptom Checker ── */
+.symptom-checker{margin-top:0}
+.symptom-input-wrap{display:flex;gap:10px;margin-bottom:14px}
+.symptom-input{
+  flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  font-size:.88rem;font-family:inherit;resize:vertical;min-height:70px;
+  transition:border-color .2s;background:var(--teal-pale);color:var(--text);
+}
+.symptom-input:focus{outline:none;border-color:var(--teal)}
+.symptom-input::placeholder{color:var(--text-muted)}
+.btn-symptom{
+  padding:12px 22px;background:var(--teal);color:#fff;border:none;border-radius:var(--radius-sm);
+  font-size:.85rem;font-weight:700;cursor:pointer;transition:background .2s;align-self:flex-start;
+  white-space:nowrap;
+}
+.btn-symptom:hover{background:var(--teal-dark)}
+.btn-symptom:disabled{opacity:.5;cursor:not-allowed}
+.symptom-result{
+  padding:16px 18px;border-radius:var(--radius-sm);font-size:.85rem;line-height:1.7;
+  display:none;
+}
+.symptom-result.visible{display:block}
+.symptom-result.ai-response{
+  background:linear-gradient(135deg,var(--teal-pale),#fff);
+  border:1px solid var(--teal-light);border-left:4px solid var(--teal);
+}
+.symptom-result.ai-error{
+  background:rgba(218,41,28,.06);border:1px solid rgba(218,41,28,.2);
+  border-left:4px solid var(--nhs-red);color:var(--nhs-red);
+}
+.symptom-spinner{display:none;align-items:center;gap:8px;font-size:.82rem;color:var(--text-muted);padding:10px 0}
+.symptom-spinner.visible{display:flex}
+.symptom-spinner .dot-pulse{display:inline-flex;gap:4px}
+.symptom-spinner .dot-pulse span{
+  width:6px;height:6px;border-radius:50%;background:var(--teal);
+  animation:dotBounce .6s infinite alternate;
+}
+.symptom-spinner .dot-pulse span:nth-child(2){animation-delay:.2s}
+.symptom-spinner .dot-pulse span:nth-child(3){animation-delay:.4s}
+@keyframes dotBounce{0%{opacity:.3;transform:translateY(0)}100%{opacity:1;transform:translateY(-4px)}}
+.symptom-disclaimer{font-size:.7rem;color:var(--text-muted);margin-top:10px;font-style:italic}
+
 /* ── History timeline ── */
 .timeline{position:relative;padding-left:24px}
 .timeline::before{
@@ -488,6 +530,22 @@ body.high-contrast .med-ev{border-left-width:4px}
     <div class="card" id="conditions-card" style="display:none">
       <div class="card-title">&#x1F3E5; Long-Term Conditions</div>
       <div class="tag-wrap" id="conditions-wrap"></div>
+    </div>
+    <div class="card symptom-checker">
+      <div class="card-title">&#x1F9D1;&#x200D;&#x2695;&#xFE0F; Symptom Checker</div>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px">
+        Describe your symptoms below and our AI assistant will suggest which of your current medications might be relevant. You can share this with your clinician at your next visit.
+      </p>
+      <div class="symptom-input-wrap">
+        <textarea id="symptom-input" class="symptom-input" placeholder="e.g. I've been feeling dizzy in the mornings and have a dry cough..." rows="3"></textarea>
+        <button id="btn-symptom-check" class="btn-symptom" onclick="checkSymptoms()">Check</button>
+      </div>
+      <div class="symptom-spinner" id="symptom-spinner">
+        <div class="dot-pulse"><span></span><span></span><span></span></div>
+        Analysing your symptoms&hellip;
+      </div>
+      <div class="symptom-result" id="symptom-result"></div>
+      <p class="symptom-disclaimer">This is an AI-generated suggestion only &mdash; not a diagnosis. Always consult your GP or pharmacist before making any changes to your medication.</p>
     </div>
     <div class="advice-banner">
       <h3>&#x1F4CB; About your medication list</h3>
@@ -1016,6 +1074,7 @@ async function init() {
 
   // Medications
   var medsRaw = (p.current_repeat_medications || '').split(';').map(function(s){return s.trim();}).filter(Boolean);
+  _patientMeds = medsRaw.slice(); // store for symptom checker
   if (medsRaw.length) {
     document.getElementById('med-grid').innerHTML = medsRaw.map(function(m) {
       var d = parseDrugString(m);
@@ -1065,6 +1124,90 @@ async function init() {
       '</div>';
     }).join('');
   }
+}
+
+/* ══════════════════════════════════════
+   SYMPTOM CHECKER (AI)
+   ══════════════════════════════════════ */
+var _patientMeds = [];  // populated by render()
+
+function checkSymptoms() {
+  var input = document.getElementById('symptom-input');
+  var btn   = document.getElementById('btn-symptom-check');
+  var spinner = document.getElementById('symptom-spinner');
+  var result  = document.getElementById('symptom-result');
+  var symptoms = input.value.trim();
+
+  if (!symptoms) { input.focus(); return; }
+  if (!_patientMeds.length) {
+    result.className = 'symptom-result visible ai-error';
+    result.textContent = 'No medications on record to analyse against. Please ensure your medication list is loaded.';
+    return;
+  }
+
+  btn.disabled = true;
+  spinner.classList.add('visible');
+  result.className = 'symptom-result';
+  result.style.display = 'none';
+
+  var medList = _patientMeds.join(', ');
+  var systemPrompt = 'You are a clinical support assistant for the NHS PharmAware system. ' +
+    'A patient will describe their symptoms and provide their current repeat medications. ' +
+    'Your job is to suggest which of their CURRENT medications could be related to or helpful for their symptoms. ' +
+    'Be concise and clear. Always remind them this is not a diagnosis and they must consult their GP or pharmacist. ' +
+    'Format your response with bullet points. Do not suggest medications they are not already taking.';
+
+  var userPrompt = 'My current medications are: ' + medList + '.\n\nMy symptoms: ' + symptoms +
+    '\n\nWhich of my current medications might be relevant to these symptoms? Please explain briefly.';
+
+  fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + window.OPENAI_API_KEY
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user',   content: userPrompt }
+      ],
+      max_tokens: 500,
+      temperature: 0.3
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    spinner.classList.remove('visible');
+    btn.disabled = false;
+    if (data.error) {
+      result.className = 'symptom-result visible ai-error';
+      result.textContent = 'Error: ' + (data.error.message || 'Unable to process your request. Please try again later.');
+      return;
+    }
+    var text = data.choices[0].message.content;
+    // Convert markdown bullet points to HTML
+    var html = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^[-•]\s*/gm, '')
+      .split('\n')
+      .filter(function(l) { return l.trim(); })
+      .map(function(l) {
+        if (l.trim().startsWith('<strong>') || /^[A-Z]/.test(l.trim())) {
+          return '<p style="margin:6px 0">' + l + '</p>';
+        }
+        return '<p style="margin:4px 0;padding-left:12px">&#x2022; ' + l + '</p>';
+      })
+      .join('');
+    result.className = 'symptom-result visible ai-response';
+    result.innerHTML = html;
+  })
+  .catch(function(err) {
+    spinner.classList.remove('visible');
+    btn.disabled = false;
+    result.className = 'symptom-result visible ai-error';
+    result.textContent = 'Network error — please check your connection and try again.';
+  });
 }
 
 /* ══════════════════════════════════════
