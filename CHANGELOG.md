@@ -1,5 +1,10 @@
 # Changelog
 
+## [2026-03-12] - Fix login card header symmetry
+- Set a consistent `min-height: 200px` on both login card headers so the clinician (blue) and patient (teal) headers are the same height
+- Added flexbox centering to vertically align header content in both cards
+- Files affected: `index.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Add Patient Complaints & Symptoms table to clinician portal
 - Added structured "Patient Complaints & Recorded Symptoms" card on the clinician results panel with a proper table (Date, Time, Complaint, Severity, Recorded By)
 - Hardcoded clinical complaint data for demo patients P0001 (5 complaints) and P0002 (3 complaints) matching the medical record format
