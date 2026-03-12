@@ -958,13 +958,20 @@ function severityColor(sev) {
   return '#637381';
 }
 
+var _aiExtractedComplaints = [];
+
 function loadPatientComplaints(patientId) {
   var card = document.getElementById('card-complaints');
   var content = document.getElementById('complaints-content');
   if (!patientId) { card.style.display = 'none'; return; }
 
-  // 1. Check hardcoded clinical complaints
-  var complaints = PATIENT_COMPLAINTS[patientId] || [];
+  // 1. Check AI-extracted complaints first, then hardcoded, then by patient name
+  var complaints = [];
+  if (_aiExtractedComplaints.length) {
+    complaints = _aiExtractedComplaints;
+  } else if (PATIENT_COMPLAINTS[patientId]) {
+    complaints = PATIENT_COMPLAINTS[patientId];
+  }
 
   // 2. Also check localStorage for patient portal notes
   var portalNotes = null;
@@ -1275,13 +1282,17 @@ Return this exact structure:
   "egfr": number or null,
   "weight_kg": number or null,
   "diagnoses": [],
-  "medications": []
+  "medications": [],
+  "complaints": []
 }
 
 For diagnoses, use ONLY these codes where applicable:
 AF, HF, CKD3, CKD4, CKD5, T2DM, HYPERTENSION, COPD, ASTHMA, DEPRESSION, ANXIETY, DEMENTIA, FRAILTY, FALLS_HX, OSTEOPOROSIS, STROKE, PARKINSON, BLEEDING_HX, PEPTIC_ULCER, OBESITY, GLAUCOMA, QT_PROLONGED_HX, THROMBOCYTOPENIA
 
 For each medication include: {"name":"lowercase drug name","dose":number_in_mg_or_0,"frequency":"od|bd|tds|qds|nocte|prn|weekly|monthly|stat"}
+
+For each complaint/symptom found in the document include: {"date":"DD Mon YYYY","time":"HH:MM","complaint":"full description","severity":"Mild|Moderate|Mild–Moderate|Severe","recordedBy":"clinician name"}
+
 If you cannot determine a value, use null. Return empty arrays if nothing found.`;
 
   const body = {
@@ -1358,13 +1369,17 @@ Return this exact structure:
   "egfr": number or null,
   "weight_kg": number or null,
   "diagnoses": [],
-  "medications": []
+  "medications": [],
+  "complaints": []
 }
 
 For diagnoses, use ONLY these codes where applicable (leave others out):
 AF, HF, CKD3, CKD4, CKD5, T2DM, HYPERTENSION, COPD, ASTHMA, DEPRESSION, ANXIETY, DEMENTIA, FRAILTY, FALLS_HX, OSTEOPOROSIS, STROKE, PARKINSON, BLEEDING_HX, PEPTIC_ULCER, OBESITY, GLAUCOMA, QT_PROLONGED_HX, THROMBOCYTOPENIA
 
 For each medication include: {"name":"lowercase drug name","dose":number_in_mg_or_0,"frequency":"od|bd|tds|qds|nocte|prn|weekly|monthly|stat"}
+
+For each complaint/symptom found in the document include: {"date":"DD Mon YYYY","time":"HH:MM","complaint":"full description","severity":"Mild|Moderate|Mild–Moderate|Severe","recordedBy":"clinician name"}
+
 If you cannot determine a value, use null. Return empty arrays if nothing found.`;
 
   const imageMessages = dataUrls.map(url => ({
@@ -1416,9 +1431,17 @@ function populateFromAI(data) {
     medRowId = 0;
     data.medications.forEach(m => addMedRow(m.name || '', m.dose || '', m.frequency || 'od'));
   }
+  // Store AI-extracted complaints globally so loadPatientComplaints can use them
+  if (data.complaints?.length) {
+    _aiExtractedComplaints = data.complaints;
+  } else {
+    _aiExtractedComplaints = [];
+  }
+
   const medCount = data.medications?.length || 0;
   const diagCount = data.diagnoses?.length || 0;
-  setAiStatus('\u2705 Extracted: ' + (data.name || 'patient') + ' \u00B7 ' + medCount + ' medication(s) \u00B7 ' + diagCount + ' diagnosis flag(s). Assessment running\u2026', 'ok');
+  const compCount = data.complaints?.length || 0;
+  setAiStatus('\u2705 Extracted: ' + (data.name || 'patient') + ' \u00B7 ' + medCount + ' medication(s) \u00B7 ' + diagCount + ' diagnosis flag(s)' + (compCount ? ' \u00B7 ' + compCount + ' complaint(s)' : '') + '. Assessment running\u2026', 'ok');
   auditLog('ai_import', { name: data.name, nhs_number: data.nhs_number, med_count: medCount, diag_count: diagCount });
   if (medCount > 0) runAssessment();
 }
@@ -1468,6 +1491,8 @@ function clearPatient() {
   const aiStatus = document.getElementById('ai-status');
   aiStatus.className = 'ai-status';
   aiStatus.textContent = '';
+  // Clear AI-extracted complaints
+  _aiExtractedComplaints = [];
   // Hide results & complaints, show empty state
   document.getElementById('results-panel').style.display = 'none';
   document.getElementById('card-complaints').style.display = 'none';

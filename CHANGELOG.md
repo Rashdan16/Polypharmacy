@@ -3,8 +3,9 @@
 ## [2026-03-12] - Add Patient Complaints & Symptoms table to clinician portal
 - Added structured "Patient Complaints & Recorded Symptoms" card on the clinician results panel with a proper table (Date, Time, Complaint, Severity, Recorded By)
 - Hardcoded clinical complaint data for demo patients P0001 (5 complaints) and P0002 (3 complaints) matching the medical record format
+- Updated both AI prompts (text and image) to extract complaints/symptoms from imported documents, so complaints from any patient record PDF/image are automatically displayed
+- AI-extracted complaints take priority, then hardcoded demo data, then patient portal self-reported notes
 - Severity values are colour-coded: green for Mild, orange for Moderate, red for Severe
-- Also checks localStorage for patient-submitted notes from the patient portal (displayed as "Patient (self-reported)")
 - Styled with NHS blue table header, alternating row colours, and dark mode / high contrast support
 - Files affected: `polyrisk.html`, `CHANGELOG.md`
 
