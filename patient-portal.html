@@ -939,8 +939,40 @@ async function init() {
   var p = JSON.parse(raw);
   currentPatientId = p.patient_id;
 
-  // Fetch assessment history from Supabase
-  var assessments = null;
+  // Hardcoded mock assessments for demo patients
+  var MOCK_ASSESSMENTS = {
+    'P0001': [
+      {
+        patient_id:'P0001', clinician_email:'dr.patel@nhs.net',
+        assessed_at:'2026-02-15T10:30:00+00:00',
+        overall_score:5.82, risk_band:'MODERATE',
+        domain_scores:{fall:5.3,bleed:6.7,acb:0.3,qt:1.7,frailty:4.5,renal:6.4}
+      },
+      {
+        patient_id:'P0001', clinician_email:'pharmacist.jones@nhs.net',
+        assessed_at:'2025-09-20T14:15:00+00:00',
+        overall_score:5.45, risk_band:'MODERATE',
+        domain_scores:{fall:4.9,bleed:6.3,acb:0.3,qt:1.7,frailty:4.0,renal:5.5}
+      }
+    ],
+    'P0002': [
+      {
+        patient_id:'P0002', clinician_email:'dr.patel@nhs.net',
+        assessed_at:'2026-01-22T09:45:00+00:00',
+        overall_score:3.28, risk_band:'MODERATE',
+        domain_scores:{fall:3.5,bleed:0.8,acb:0.3,qt:0.4,frailty:2.3,renal:5.3}
+      },
+      {
+        patient_id:'P0002', clinician_email:'pharmacist.jones@nhs.net',
+        assessed_at:'2025-08-10T11:00:00+00:00',
+        overall_score:3.02, risk_band:'MODERATE',
+        domain_scores:{fall:3.1,bleed:0.8,acb:0.3,qt:0.4,frailty:2.0,renal:4.8}
+      }
+    ]
+  };
+
+  // Fetch assessment history from Supabase, fall back to hardcoded mock data
+  var assessments = MOCK_ASSESSMENTS[p.patient_id] || null;
   try {
     var controller = new AbortController();
     var timeout = setTimeout(function() { controller.abort(); }, 5000);
@@ -951,7 +983,7 @@ async function init() {
       .order('assessed_at', {ascending: false})
       .abortSignal(controller.signal);
     clearTimeout(timeout);
-    assessments = res.data;
+    if (res.data && res.data.length) assessments = res.data;
   } catch (_) {}
 
   // Header & hero

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026-03-12] - Hardcode mock assessments for P0001 and P0002
+- Assessment history for P0001 and P0002 is now hardcoded in `patient-portal.html` as a fallback so the Assessment History tab always shows data for these demo patients
+- Supabase is still queried first — if real assessments exist in the DB they take priority; hardcoded data is only used if Supabase returns nothing
+- P0001: 2 assessments (Feb 2026 + Sep 2025, both MODERATE ~5.5, dr.patel & pharmacist.jones)
+- P0002: 2 assessments (Jan 2026 + Aug 2025, both MODERATE ~3.1, dr.patel & pharmacist.jones)
+- Files affected: `patient-portal.html`, `CHANGELOG.md`
+
 ## [2026-03-11] - Add mock assessments for P0001 and P0002
 - Added 4 mock assessment INSERT statements to `seed-supabase.sql` (2 per patient)
 - **P0001** (83F, AF/HF/CKD3/T2DM, 6 meds): scores 5.82 MODERATE (Feb 2026, dr.patel) and 5.45 MODERATE (Sep 2025, pharmacist.jones). Key risks: bleed 6.7 (warfarin), renal 6.4 (metformin+furosemide), fall 5.3
