@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026-03-12] - Enlarge and bold Patient Notes text and Emergency 999 button
+- Increased font sizes and added bold weight across the notes section: textarea, save button, saved message, timestamp, and description text
+- Emergency 999 button enlarged from 68px to 100px diameter, with bigger phone icon (2rem) and number text (1.3rem), plus larger label
+- Mobile breakpoint also scaled up accordingly
+- Files affected: `patient-portal.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Add Patient Notes section and Emergency 999 button
 - Added "My Notes" card on the Medications tab, placed below Long-Term Conditions, allowing patients to write and save personal notes (symptoms, questions for GP, side effects, etc.)
 - Notes are persisted in localStorage per patient ID with a timestamp showing when last saved
