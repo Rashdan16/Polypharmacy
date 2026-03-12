@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026-03-12] - Add Patient Notes section and Emergency 999 button
+- Added "My Notes" card on the Medications tab, placed below Long-Term Conditions, allowing patients to write and save personal notes (symptoms, questions for GP, side effects, etc.)
+- Notes are persisted in localStorage per patient ID with a timestamp showing when last saved
+- Added a fixed "Call 999" emergency button on the right side of the viewport — tapping/clicking it initiates a phone call to 999
+- Styled with a red circular button, phone icon, and "Emergency" label; responsive for mobile
+- Files affected: `patient-portal.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Add AI Symptom Checker to Medications tab
 - Added a new "Symptom Checker" card on the Medications tab where patients can describe their symptoms
 - AI (GPT-4o-mini via OpenAI API) analyses the symptoms against the patient's current repeat medications and suggests which ones may be relevant
