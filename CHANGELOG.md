@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026-09-30] - Prefill demo login credentials
+- Clinician form now opens with `clinician@nhs.demo` / `Demo1234!` already filled in, and the patient form with `P0001` / `Patient1!`, so you only need to click Sign In or Access My Record
+- Files affected: `index.html`, `CHANGELOG.md`
+
 ## [2026-03-12] - Add Assessment Timeline to clinician results panel
 - Added an "Assessment Timeline" card at the bottom of the clinician results panel showing historical risk assessments
 - Each timeline entry displays: date/time, reviewing clinician, overall score with colour-coded risk band, and domain score chips (Fall Risk, Bleed Risk, ACB, QT Risk, Frailty, Renal Risk)

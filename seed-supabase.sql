@@ -354,7 +354,9 @@ VALUES (
 );
 
 -- P0002: 76M, T2DM;HYPERTENSION;OBESITY, on metformin/gliclazide/ramipril/amlodipine/atorvastatin, eGFR 72
-INSERT INTO assessments (patient_id, clinician_email, assessed_at, age, sex, egfr, weight_kg, diagnoses, medications, overall_score, risk_band, domain_scores, drug_details, top_offenders)
+
+
+-- Verify: SELECT count(*) FROM assessments;INSERT INTO assessments (patient_id, clinician_email, assessed_at, age, sex, egfr, weight_kg, diagnoses, medications, overall_score, risk_band, domain_scores, drug_details, top_offenders)
 VALUES (
   'P0002',
   'dr.patel@nhs.net',
@@ -383,5 +385,3 @@ VALUES (
   '[{"drug":"metformin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":3},{"drug":"gliclazide","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":1,"renal":2},{"drug":"ramipril","fall":1,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":2},{"drug":"amlodipine","fall":2,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":0},{"drug":"atorvastatin","fall":0,"bleed":0,"acb":0,"qt":0,"frailty":0,"renal":0}]'::jsonb,
   '[{"drug":"metformin","domain":"renal","score":3},{"drug":"amlodipine","domain":"fall","score":2},{"drug":"gliclazide","domain":"renal","score":2}]'::jsonb
 );
-
--- Verify: SELECT count(*) FROM assessments;
