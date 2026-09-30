@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026-09-30] - Add demo patient record PDF
+- Added a 2-page A4 PDF record for demo patient P0001 (Margaret Thompson), built from the existing demo data in `index.html` and `seed-supabase.sql`
+- Contents: patient details, clinical measurements, long-term conditions, repeat medications, latest risk assessment with domain scores, per-drug contributions, top risk drivers and assessment history
+- Every page is watermarked "DEMO DATA" and has a footer saying the record is fictitious
+- Generated with Python `reportlab`
+- Files affected: `Demo_Patient_Record_P0001.pdf` (new), `CHANGELOG.md`
+
 ## [2026-09-30] - Prefill demo login credentials
 - Clinician form now opens with `clinician@nhs.demo` / `Demo1234!` already filled in, and the patient form with `P0001` / `Patient1!`, so you only need to click Sign In or Access My Record
 - Files affected: `index.html`, `CHANGELOG.md`
