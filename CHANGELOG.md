@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026-11-09] - Hardcode demo patient into AI Document Import
+- The AI Document Import box now runs in demo mode (`AI_DEMO_MODE = true`): dropping or choosing any file shows short "Reading…" and "AI extracting…" steps, then fills the form with demo patient P0001 (Margaret Thompson). No OpenAI request is made
+- Demo data matches P0001 in `index.html` and `seed-supabase.sql`: 83F, eGFR 88, 68 kg, AF/HF/CKD3/T2DM, warfarin, bisoprolol, ramipril, furosemide, metformin and atorvastatin. Complaints come from the existing `PATIENT_COMPLAINTS['P0001']`
+- The assessment runs automatically after the import. Set `AI_DEMO_MODE = false` to go back to real AI extraction
+- Files affected: `polyrisk.html`, `CHANGELOG.md`
+
 ## [2026-09-30] - Add demo patient record PDF
 - Added a 2-page A4 PDF record for demo patient P0001 (Margaret Thompson), built from the existing demo data in `index.html` and `seed-supabase.sql`
 - Contents: patient details, clinical measurements, long-term conditions, repeat medications, latest risk assessment with domain scores, per-drug contributions, top risk drivers and assessment history

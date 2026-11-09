@@ -1380,7 +1380,39 @@ function initAIUpload() {
   });
 }
 
+// ── Demo mode: hardcoded extraction result (no AI call) ──
+const AI_DEMO_MODE = true;
+// Mirrors demo patient P0001 (Margaret Thompson) from index.html / seed-supabase.sql
+const DEMO_PATIENT = {
+  name: 'Margaret Thompson',
+  nhs_number: 'P0001',
+  age: 83,
+  sex: 'F',
+  egfr: 88,
+  weight_kg: 68,
+  diagnoses: ['AF', 'HF', 'CKD3', 'T2DM'],
+  medications: [
+    {name: 'warfarin',     dose: 3,   frequency: 'od'},
+    {name: 'bisoprolol',   dose: 5,   frequency: 'od'},
+    {name: 'ramipril',     dose: 5,   frequency: 'od'},
+    {name: 'furosemide',   dose: 40,  frequency: 'od'},
+    {name: 'metformin',    dose: 500, frequency: 'bd'},
+    {name: 'atorvastatin', dose: 40,  frequency: 'nocte'}
+  ],
+  complaints: PATIENT_COMPLAINTS['P0001'] || []
+};
+
+async function runDemoExtraction(file) {
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  setAiStatus('📄 Reading ' + (file ? file.name : 'document') + '…', 'info');
+  await wait(700);
+  setAiStatus('🤖 AI extracting patient details…', 'info');
+  await wait(1200);
+  populateFromAI(JSON.parse(JSON.stringify(DEMO_PATIENT)));
+}
+
 async function handleDocumentFile(file) {
+  if (AI_DEMO_MODE) return runDemoExtraction(file);
   const key = window.OPENAI_API_KEY || '';
   if (!key) { setAiStatus('\u26A0 API key not found. Check config.js.', 'error'); return; }
 
@@ -1790,7 +1822,9 @@ window.onload = async function() {
     fontIdx = parseInt(savedFont);
     document.documentElement.style.fontSize = FONT_SIZES[fontIdx] + 'px';
   }
-  if (window.OPENAI_API_KEY && window.OPENAI_API_KEY !== 'YOUR_OPENAI_API_KEY_HERE') {
+  if (AI_DEMO_MODE) {
+    setAiStatus('✓ Demo mode: drop any file to load a sample patient.', 'ok');
+  } else if (window.OPENAI_API_KEY && window.OPENAI_API_KEY !== 'YOUR_OPENAI_API_KEY_HERE') {
     setAiStatus('\u2713 API key loaded. Drop a document to begin.', 'ok');
   }
   addMedRow(); addMedRow(); addMedRow();
